@@ -668,7 +668,7 @@ function capa2str() {
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Format fingerprint
 ##  $1: fingerprint
-function frmt_fpr() {
+function frmt_fpr_gpg() {
     local fpr="$1"
     local len=${#fpr}
     if [[ $len -ne 40 ]] ; then 
@@ -726,7 +726,7 @@ function parse_key_info() {
 
 	## Fingerprints
 	if [ "$type" == "fpr" ] ; then
-	    fprs=(${fprs[@]} "$(frmt_fpr $(echo "$line" | cut -d: -f10))")
+	    fprs=(${fprs[@]} "$(frmt_fpr_gpg $(echo "$line" | cut -d: -f10))")
 	fi
 
 	## User-ids
