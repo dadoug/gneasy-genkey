@@ -82,7 +82,7 @@ in order to use this software.
 This software is a self contained bash script. 
 It should, therefore, suffice to copy the script to a global path:
 ```bash
-sudo cp gneasy-genkey /usr/local/bin/
+sudo cp gneasy-genkey.sh /usr/local/bin/gneasy-genkey
 sudo chmod o=rwx,g=rx,o=rx /usr/local/bin/gneasy-genkey
 ```
 
@@ -133,7 +133,6 @@ gneasy-genkey "Testy McTesterson <testy@mctesterson.test>,Test Testerson <test@t
                                   
 ### Help
 ```
-Arguments:
 Usage: gneasy-genkey <uid> [options]
 Easy GnuPG key generation tool.
 
@@ -247,13 +246,13 @@ from ioerror.
 
 The crucial part of this script is the "state-machine" that automates 
 interaction with GnuPG. That such interaction was even possible and 
-the initial example was found at the 
+the initial example of which was found at the 
 [GnuPG users mailing list archive #67792](http://www.gossamer-threads.com/lists/gnupg/users/67792#67792).
 
 Small snippets and other inspiration were lifted from the 
 [monkeysphere](http://web.monkeysphere.info/community/) code.
 
-<!--  end Readme.md -->
+<!-- end Readme.md -->
 <!-- ####################################################################### -->
 
 
