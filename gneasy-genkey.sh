@@ -118,7 +118,7 @@ EOF
 }
 
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-## Handles for logging EGK_SILENT
+## Handles for logging
 function log() { 
     if [ "$EGK_QUIET" != true ] && [ "$EGK_SILENT" != true ] ; then 
 	echo "egk: $@"; 
@@ -246,9 +246,8 @@ function check_dependencies() {
     ## Optionals
 
     ## haveged
-    if type haveged &>/dev/null ; then
-	havegedCmd=$(which haveged)
-    else
+    havegedStatus=$(dpkg --status haveged | grep Status)
+    if [[ "$havegedStatus" != *"installed"* ]] ; then 
 	log "Consider installing 'haveged' for better entropy gathering."
     fi
 
@@ -401,14 +400,14 @@ function egk_gpg_state_machine(){
 ## List public key information with machine parsable output
 ##  $1: keyId
 function egk_gpg_listkey() {
-    egk_gpg --with-colons --list-key "$1"
+    egk_gpg  --with-fingerprint --with-colons --list-key "$1"
 }
 
 ##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## List public key information with machine parsable output
 ##  $1: keyId
 function egk_gpg_listsecretkey() {
-    egk_gpg --with-colons --list-secret-key "$1"
+    egk_gpg  --with-fingerprint --with-colons --list-secret-key "$1"
 }
 
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -727,12 +726,12 @@ function parse_key_info() {
     ## Parse the obtuse GnuPG output
     oldIFS="$IFS"
     IFS=$'\n'
-    for line in $(egk_gpg_listkey --with-fingerprint "$keyId")
+    for line in $(egk_gpg_listsecretkey "$keyId")
     do
 	#echo "$line"
 	type=$(echo "$line" | cut -d: -f1)
 	## Master public key
-	if [ "$type" == "pub" ] || [ "$type" == "sub" ] ; then
+	if [ "$type" == "sec" ] || [ "$type" == "ssb" ] ; then
 	    lengths=(${lengths[@]} \
 		     $(echo "$line" | cut -d: -f3))
 	    algos=(${algos[@]} \
@@ -745,7 +744,7 @@ function parse_key_info() {
 		      $(sec2date $(echo "$line" | cut -d: -f7)))
 	    capes=(${capes[@]} \
 		   $(capa2str $(echo "$line" | cut -d: -f12)))
-	    if [ "$type" == "pub" ] ; then
+	    if [ "$type" == "sec" ] ; then
 		masterIdx=$((${#lengths[@]}-1))
 	    fi
 	fi
@@ -783,9 +782,9 @@ function export_key_yaml() {
 
     ## Print the summary information to a file
     if [ -d "$outDir" ] ; then
-	local infoF="$outDir/public-key-info.yaml"
+	local infoF="$outDir/info-public-key.yaml"
     else
-	local infoF="$keyId-public-key-info.yaml"
+	local infoF="$keyId-info-public-key.yaml"
     fi
 
     ## Write YAML file
@@ -928,9 +927,9 @@ function export_uid_fpr_qr() {
     local outDir="$2"
     if [[ -n "${qrCmd:-}" ]] ; then 
 	if [ -d "$outDir" ] ; then
-	    local qrF="$outDir/uid-fpr-qr.png"
+	    local qrF="$outDir/qr-uid-fpr.png"
 	else
-	    local qrF="$keyId-uid-fpr-qr.png"
+	    local qrF="$keyId-qr-uid-fpr.png"
 	fi
 	local info="${uidnames[0]} <${uidemails[0]}>"
 	info+="\n${fprs[$masterIdx]}"
@@ -1028,8 +1027,6 @@ function parse_options() {
 		shift ;;
 
 	    ## EGK Options
-	    # -n | --name          ) EGK_NAME="$2";        shift 2 ;;
-	    # -e | --email         ) EGK_MAIL="$2";       shift 2 ;;
 	    -S | --size          ) EGK_KEYSIZE="$2";     shift 2 ;;
 	    -L | --lifetime      ) EGK_KEYLIFE="$2";     shift 2 ;;
 	    -s | --sub-size      ) EGK_SUBKEYSIZE="$2";  shift 2 ;;
@@ -1245,11 +1242,14 @@ function gneasy_genkey(){
 		fi
 	    fi
 
-	    ## Export QR file
-    	    if [ "$EGK_EXPORTQR" == true ] ; then 
-		local qrF=$(export_uid_fpr_qr  "$masterKeyId" "$outDir")
-    		if [[ -e "$qrF" ]] ; then log "Exported qr-code:    $qrF"
+	    ## Export ics file
+    	    if [ "$EGK_EXPORTCAL" == true ] ; then 
+		local icsF=$(export_key_ics  "$masterKeyId" "$outDir")
+    		if [[ -e "$icsF" ]] ; then log "Exported calendar:   $icsF"
     		else warning "Failed to export key summary" ; fi
+    		if [ "$EGK_DEBUG" == true ] ; then 
+		    debug "iCal: "; cat "$icsF" ; 
+		fi
 	    fi
 
 	    ## Export vcard file
@@ -1259,14 +1259,12 @@ function gneasy_genkey(){
     		else warning "Failed to export vcard" ; fi
 	    fi
 
-	    ## Export ics file
-    	    if [ "$EGK_EXPORTCAL" == true ] ; then 
-		local icsF=$(export_key_ics  "$masterKeyId" "$outDir")
-    		if [[ -e "$icsF" ]] ; then log "Exported calendar:   $icsF"
+	    ## Export QR file
+    	    if [ "$EGK_EXPORTQR" == true ] && 
+	       [[ -n "${qrCmd:-}" ]]; then 
+		local qrF=$(export_uid_fpr_qr  "$masterKeyId" "$outDir")
+    		if [[ -e "$qrF" ]] ; then log "Exported qr-code:    $qrF"
     		else warning "Failed to export key summary" ; fi
-    		if [ "$EGK_DEBUG" == true ] ; then 
-		    debug "iCal: "; cat "$icsF" ; 
-		fi
 	    fi
     	fi
 
