@@ -187,6 +187,13 @@ function check_dependencies() {
  	fatal "Failed to find directory creater: 'mkdir'"
     fi
 
+    ## chmod
+    if type chmod &>/dev/null ; then
+	chmodCmd=$(which chmod)
+    else
+ 	fatal "Failed to find mode changer: 'chmod'"
+    fi
+
     ## grep
     if type grep &>/dev/null ; then
 	grepCmd=$(which grep)
@@ -1110,16 +1117,26 @@ function parse_options() {
     fi
 
     ## GnuPG
-    if [[ -z "${EGK_GPGHOME:-}" ]] || [[ ! -d "$EGK_GPGHOME" ]] ; then 
-	opt_error "GnuPG home directory not found: $EGK_GPGHOME"; 
+    ## Check if gnupg homedir variable is set
+    if [[ -z "${EGK_GPGHOME:-}" ]] ; then 
+	opt_error "GnuPG home directory not set"; 
     fi
+    ## Check if gnupg homedir exists
+    if [[ ! -d "$EGK_GPGHOME" ]] ; then 
+	log "Creating GnuPG home directory: $EGK_GPGHOME"; 
+	"$mkdirCmd" "$EGK_GPGHOME"
+	"$chmodCmd" u=rwx,g=,o= "$EGK_GPGHOME"
+    fi
+    ## Check if gnupg homedir is accesible; GnuPG will check other permissions
     if [[ ! -r "$EGK_GPGHOME" ]] || [[ ! -w "$EGK_GPGHOME" ]] ; then 
 	opt_error "GnuPG home directory not accessible: $EGK_GPGHOME"; 
     fi
+    ## Check for cipher-algo
     if [[ "$gpgVstr" != *"$EGK_GPGCIPHERALGO"* ]]; then 
 	warning "cipher-algo $EGK_GPGCIPHERALGO not found, using CAST5" 
 	EGK_GPGCIPHERALGO="CAST5"
     fi
+    ## Check for digest-algo
     if [[ "$gpgVstr" != *"$EGK_GPGDIGESTALGO"* ]]; then 
 	warning "digest-algo $EGK_GPGDIGESTALGO not found, using SHA1" 
 	EGK_GPGDIGESTALGO="SHA1"
