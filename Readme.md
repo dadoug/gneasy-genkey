@@ -90,10 +90,13 @@ will perform the following tasks:
    certificate for the master key. 
 5. Export the protected secret key, protected secret sub-keys and public key 
    to individual files.
-6. Create a [YAML](https://en.wikipedia.org/wiki/YAML) formatted file 
-   containing human-readable information about the generated keys.
-7. Create a iCal file that can be imported by a calendar program as a 
-   reminder of key expiration dates.
+6. Create some informative files for the new key, including:
+   - a [YAML](https://en.wikipedia.org/wiki/YAML) formatted file 
+	 containing human-readable information about the generated keys.
+   - a qr-encoded UID and fingerprint
+   - a contact [vCard](https://en.wikipedia.org/wiki/VCard)
+   - an iCal file that can be imported by a calendar program as a 
+	 reminder of key expiration dates.
 8. Remove the master (certification) key from the GnuPG keyring, 
    but keep the sub-keys (capable of signing, encryption and authentication).
 
