@@ -95,8 +95,8 @@ will perform the following tasks:
 	 containing human-readable information about the generated keys.
    - a qr-encoded UID and fingerprint
    - a contact [vCard](https://en.wikipedia.org/wiki/VCard)
-   - an iCal file that can be imported by a calendar program as a 
-	 reminder of key expiration dates.
+   - an [iCal](https://en.wikipedia.org/wiki/ICalendar) 
+     as a reminder of key expiration dates.
 8. Remove the master (certification) key from the GnuPG keyring, 
    but keep the sub-keys (capable of signing, encryption and authentication).
 
