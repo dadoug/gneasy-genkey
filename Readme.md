@@ -139,8 +139,10 @@ Options:
      --no-export-pub  Do not export public key.
      --no-export-sec  Do not export secret keys.
      --no-export-sub  Do not export secret sub-keys.
-     --no-summary     Do not export key summary.
+     --no-info        Do not export key summary information.
      --no-calendar    Do not export iCalendar for key expiration dates.
+     --no-qr          Do not export QR-code with uid and fingerprint.
+     --no-vcard       Do not export vcard with contact information.
      --keep-master    Keep the master key in the GnuPG keyring.
 
      --quiet          Disable regular terminal output but show errors.
