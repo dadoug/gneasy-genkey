@@ -245,11 +245,12 @@ function check_dependencies() {
     ## -------------------------------------
     ## Optionals
 
-    ## haveged
-    havegedStatus=$(dpkg --status haveged | grep Status)
-    if [[ "$havegedStatus" != *"installed"* ]] ; then 
-	log "Consider installing 'haveged' for better entropy gathering."
-    fi
+    # Bug: dpkg is Debian-specific!
+    # ## haveged
+    # havegedStatus=$(dpkg --status haveged | grep Status)
+    # if [[ "$havegedStatus" != *"installed"* ]] ; then 
+    # 	log "Consider installing 'haveged' for better entropy gathering."
+    # fi
 
     ## QR encoder
     if type qrencode &>/dev/null ; then
