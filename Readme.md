@@ -129,7 +129,7 @@ Options:
      --no-sign        Do not generate a sub-key for signing.
      --no-encr        Do not generate a sub-key for encryption.
      --no-auth        Do not generate a sub-key for authentication.
-     --no-otr         Do not generate a 1024-bit DSA sub-key for authentication.
+     --otr            Generate a 1024-bit DSA sub-key for authentication.
 
      --gnupg-home     Home directory for GnuPG. Default is '~/.gnupg'.
      --out-dir        Directory for export output; created if not present.
