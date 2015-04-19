@@ -39,7 +39,7 @@ Usage: $EGK_PROG <uid> [options]
 Easy GnuPG key generation tool.
 
 Arguments:
- <uid>  User-id for the generated key. Format is "Name <email>".
+ <uid>  User-id(s) for the generated key. Format is "Name <email>".
 
 Options:
  -S, --size           Size (length) in bits of master key.
@@ -613,27 +613,64 @@ function egk_gpg_export_revoke() {
     local keyId="$1"
     local outDir="$2"
     ## Set-up output file
-    if [[ -n "${outDir:-}" ]] ; then 
-	local revFile="$outDir/revocation-cert.gpg"
+    if [[ -d "$outDir" ]] ; then 
+	local revFile="$outDir/revocation-cert.asc"
     else
-	local revFile="$keyId-revocation-cert.gpg"
+	local revFile="$keyId-revocation-cert.asc"
     fi
 
     ## Generate the key
-    local flags=( --output $revFile --gen-revoke $keyId )
+    local flags=( --armor --output $revFile --gen-revoke $keyId )
     local statusF=$(egk_gpg_state_machine \
                     "revoke" \
                     "Y\n0\n\nY\n" \
                      ${flags[@]})
+
     ## Check for success
     if [[ -e "$revFile" ]] ; then 
-	local erc=$(egk_gpg_enrc_file "$revFile")
-	if [[ -e "$erc" ]] ; then 
-	    ## the file is sensitive, let's obliterate it
-	    srm_file "$revFile"
-	    echo "$erc"
+	## Successfully generated the file
+	if [ "$EGK_EXPORTQR"  == true ] && [[ -n "${qrCmd:-}" ]] ; then 
+	    ## QR requested:
+
+	    ## Build qr file name
+	    if [[ -d "$outDir" ]] ; then
+		local qrrf="$outDir/revocation-cert.png"
+	    else
+		local qrrf="$keyId-revocation-cert.png"
+	    fi
+	    ## generate the qr code
+	    cat "$revFile" | qrencode -o "$qrrf"
+
+	    ## Build bundle file name
+	    if [[ -d "$outDir" ]] ; then
+		local rfb="$outDir/revocation-cert.tgz"
+	    else
+		local rfb="$keyId-revocation-cert.tgz"
+	    fi
+	    ## bundle the formated files
+	    tar -czf "$rfb" "$revFile" "$qrrf"
+
+	    ## encrypt bundle
+	    local erc=$(egk_gpg_enrc_file "$rfb")
+	    if [[ -e "$erc" ]] ; then 
+		## the files are sensitive, let's obliterate them
+		srm_file "$revFile"
+		srm_file "$qrrf"
+		srm_file "$rfb"
+		echo "$erc"
+	    else
+		echo "failed"
+	    fi
 	else
-	    echo "failed"
+	    ## no QR requested:
+	    local erc=$(egk_gpg_enrc_file "$revFile")
+	    if [[ -e "$erc" ]] ; then 
+		## the file is sensitive, let's obliterate it
+		srm_file "$revFile"
+		echo "$erc"
+	    else
+		echo "failed"
+	    fi
 	fi
     else
 	echo "failed"
