@@ -24,6 +24,7 @@ can be tedious and a bit confusing.
 
 So, here's a script that performs the following tasks 
 (most of which can be toggled):
+
 1. Generate a 4096-bit RSA master key capable of certification 
    and set to expire two years from now.
 2. Generate three 4096-bit RSA sub-keys capable of signing, encryption and 
