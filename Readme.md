@@ -115,7 +115,7 @@ gneasy-genkey "Testy McTesterson <testy@mctesterson.test>,Test Testerson <test@t
                                   
 ### Help
 ```
-Usage: gneasy-genkey <uid> [options]
+Usage: $EGK_PROG <uid> [options]
 Easy GnuPG key generation tool.
 
 Arguments:
@@ -128,9 +128,9 @@ Options:
                         Format is that of GnuPG: 0 = no expiration, 
                         <n> = n days, <n>w = n weeks, <n>m = n months, 
                         <n>y = n years. Default is 2y.
- -s, --sub-size       Size, e.g length, of sub-keys in bits.
+ -s, --sub-size       Size of sub-keys in bits.
                         Range and default same as --size.
- -l, --sub-lifetime   Lifetime (expiration time) of sub-keys. 
+ -l, --sub-lifetime   Lifetime of sub-keys. 
                         Format is same as --lifetime. Default is 1y.
 
      --no-sign        Do not generate a sub-key for signing.
@@ -138,7 +138,6 @@ Options:
      --no-auth        Do not generate a sub-key for authentication.
      --otr            Generate a 1024-bit DSA sub-key for authentication.
 
-     --gnupg-home     Home directory for GnuPG. Default is '~/.gnupg'.
      --out-dir        Directory for export output; created if not present.
                         Default is key-id of the master key.
      --no-export      Do not export keys, revocation or summary.
@@ -152,8 +151,11 @@ Options:
      --no-vcard       Do not export vcard with contact information.
      --keep-master    Keep the master key in the GnuPG keyring.
 
+     --gnupg-home     Home directory for GnuPG. Default is '~/.gnupg'.
+
      --quiet          Disable regular terminal output but show errors.
      --silent         Disable all terminal output.
+
  -h, --help           Print this help and exit.
  -v, --version        Print version information and exit.
      --version-num    Print version number <major.minor.patch> and exit.

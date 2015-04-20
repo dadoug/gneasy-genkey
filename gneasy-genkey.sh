@@ -48,9 +48,9 @@ Options:
                         Format is that of GnuPG: 0 = no expiration, 
                         <n> = n days, <n>w = n weeks, <n>m = n months, 
                         <n>y = n years. Default is 2y.
- -s, --sub-size       Size, e.g length, of sub-keys in bits.
+ -s, --sub-size       Size of sub-keys in bits.
                         Range and default same as --size.
- -l, --sub-lifetime   Lifetime (expiration time) of sub-keys. 
+ -l, --sub-lifetime   Lifetime of sub-keys. 
                         Format is same as --lifetime. Default is 1y.
 
      --no-sign        Do not generate a sub-key for signing.
@@ -58,7 +58,6 @@ Options:
      --no-auth        Do not generate a sub-key for authentication.
      --otr            Generate a 1024-bit DSA sub-key for authentication.
 
-     --gnupg-home     Home directory for GnuPG. Default is '~/.gnupg'.
      --out-dir        Directory for export output; created if not present.
                         Default is key-id of the master key.
      --no-export      Do not export keys, revocation or summary.
@@ -72,8 +71,11 @@ Options:
      --no-vcard       Do not export vcard with contact information.
      --keep-master    Keep the master key in the GnuPG keyring.
 
+     --gnupg-home     Home directory for GnuPG. Default is '~/.gnupg'.
+
      --quiet          Disable regular terminal output but show errors.
      --silent         Disable all terminal output.
+
  -h, --help           Print this help and exit.
  -v, --version        Print version information and exit.
      --version-num    Print version number <major.minor.patch> and exit.
@@ -480,12 +482,13 @@ function parse_uid_mail(){
 ##  $2: name
 ##  $3: email
 function egk_gpg_add_uid(){
-    log "Adding uid: $2 <$3> ..."
     local flags=( --allow-freeform-uid --edit-key "$1" )
     local statusF=$(egk_gpg_state_machine \
-                    "$1" \
+                    "adduid" \
                     "adduid\n$2\n$3\n\nO\nuid 1\nprimary\nsave\n" \
                     ${flags[@]})
+
+    log "Added uid: $2 <$3> ..."
 }
 
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -514,6 +517,8 @@ function egk_gpg_gen_subkey(){
     elif [ "$1" == "otr" ] ;            then sm="7\nA\nS\nQ";
     else fatal "Unkown subkey type: $1" 
     fi
+
+                  # --batch \
 
     ## Generate the key
     log "Generating key: $1 ..."
@@ -1038,7 +1043,8 @@ function parse_options() {
     cliLOpts="bash-debug,debug,"\
 "quiet,silent,help,version,version-num,copyright,"\
 "size:,lifetime:,sub-size:,sub-lifetime:,"\
-"gnupg-home:,no-sign,no-encr,no-auth,otr,"\
+"gnupg-home:,"\
+"no-sign,no-encr,no-auth,otr,"\
 "out-dir:,no-export,no-export-pub,no-export-sec"\
 "no-revoke,no-info,no-calendar,no-qr,no-vcard,keep-master" 
 # gnupg-opts:,
@@ -1168,6 +1174,7 @@ function parse_options() {
     if [[ ! -r "$EGK_GPGHOME" ]] || [[ ! -w "$EGK_GPGHOME" ]] ; then 
 	opt_error "GnuPG home directory not accessible: $EGK_GPGHOME"; 
     fi
+
     ## Check for cipher-algo
     if [[ "$gpgVstr" != *"$EGK_GPGCIPHERALGO"* ]]; then 
 	warning "cipher-algo $EGK_GPGCIPHERALGO not found, using CAST5" 
@@ -1212,10 +1219,6 @@ function gneasy_genkey(){
     ## Master Key; sets global variable $masterKeyId
     egk_gpg_gen_master "$EGK_NAME" "$EGK_MAIL" "$EGK_KEYSIZE" "$EGK_KEYLIFE"
 
-    if [[ ${#EGK_NAMES[@]} -gt 0 ]] ; then 
-	egk_gpg_add_uids "$masterKeyId"
-    fi
-
     ## -----------------
     ## Sub-keys
     if [ "$EGK_GENSIGN" == true ] ; then 
@@ -1235,6 +1238,13 @@ function gneasy_genkey(){
                            "1024" "$EGK_SUBKEYLIFE"
     fi
 
+    ## -----------------
+    ## UIDs
+    if [[ ${#EGK_NAMES[@]} -gt 0 ]] ; then 
+	egk_gpg_add_uids "$masterKeyId"
+    fi
+
+    ## Debug 
     if [ "$EGK_DEBUG" == true ] ; then 
     	debug "Key info: "
     	egk_gpg_listsecretkey "$masterKeyId"
@@ -1246,6 +1256,7 @@ function gneasy_genkey(){
         ## Make output directory
         local outDir=$(mkout_dir "$masterKeyId")
 
+	## -----------------
     	## Revocation
     	if [ "$EGK_EXPORTREV" == true ] ; then 
     	    log "Use a strong and memorable pass-phrase to protect your"\
@@ -1255,6 +1266,7 @@ function gneasy_genkey(){
     	    else warning "Failed to export revocation certificate" ; fi
     	fi
 
+	## -----------------
         ## Public key
     	if [ "$EGK_EXPORTPUB" == true ] ; then 
     	    local pubF=$(egk_gpg_export_key "$masterKeyId" \
@@ -1263,7 +1275,8 @@ function gneasy_genkey(){
     	    else warning "Failed to export public key" ; fi
     	fi
 
-    	## Secret key
+ 	## -----------------
+   	## Secret key
     	if [ "$EGK_EXPORTSEC" == true ] ; then 
     	    local secF=$(egk_gpg_export_key "$masterKeyId" \
     		         "$outDir" "secret")
@@ -1271,7 +1284,8 @@ function gneasy_genkey(){
     	    else warning "Failed to export secret key" ; fi
     	fi
 
-    	## Secret sub-keys
+ 	## -----------------
+   	## Secret sub-keys
     	if [ "$EGK_EXPORTSUB" == true ] ; then 
     	    local ssecF=$(egk_gpg_export_key "$masterKeyId" \
     		          "$outDir" "secret-subs")
@@ -1279,7 +1293,8 @@ function gneasy_genkey(){
     	    else warning "Failed to export secret sub-keys" ; fi
     	fi
 
-    	## Summary
+ 	## -----------------
+   	## Summary
     	if [ "$EGK_EXPORTSUM" == true ] || \
 	   [ "$EGK_EXPORTCAL" == true ] || \
 	   [ "$EGK_EXPORTQR"  == true ] || \
@@ -1287,6 +1302,7 @@ function gneasy_genkey(){
 	    ## Parse the --list-key output
 	    parse_key_info "$masterKeyId"
 
+	    ## -----------------
 	    ## Export yaml file
     	    if [ "$EGK_EXPORTSUM" == true ] ; then 
     		local sumF=$(export_key_yaml "$masterKeyId" "$outDir")
@@ -1297,6 +1313,7 @@ function gneasy_genkey(){
 		fi
 	    fi
 
+	    ## -----------------
 	    ## Export ics file
     	    if [ "$EGK_EXPORTCAL" == true ] ; then 
 		local icsF=$(export_key_ics  "$masterKeyId" "$outDir")
@@ -1307,6 +1324,7 @@ function gneasy_genkey(){
 		fi
 	    fi
 
+	    ## -----------------
 	    ## Export vcard file
     	    if [ "$EGK_EXPORTVC" == true ] ; then 
 		local qrF=$(export_vcard  "$masterKeyId" "$outDir")
@@ -1314,6 +1332,7 @@ function gneasy_genkey(){
     		else warning "Failed to export vcard" ; fi
 	    fi
 
+	    ## -----------------
 	    ## Export QR file
     	    if [ "$EGK_EXPORTQR" == true ] && 
 	       [[ -n "${qrCmd:-}" ]]; then 
@@ -1323,7 +1342,8 @@ function gneasy_genkey(){
 	    fi
     	fi
 
-    	## Remove master key from key-ring
+ 	## -----------------
+   	## Remove master key from key-ring
     	if [ "$EGK_KEEPMASTER" == false ] && \
     	   [ "$EGK_EXPORTSEC"  == true  ] && [[ -e "$secF"  ]] && \
     	   [ "$EGK_EXPORTSUB"  == true  ] && [[ -e "$ssecF" ]] ; then 
