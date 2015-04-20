@@ -29,20 +29,19 @@ So, here's a script that performs the following tasks
    and set to expire two years from now.
 2. Generate three 4096-bit RSA sub-keys capable of signing, encryption and 
    authentication respectively and set to expire one year from now.
-3. Generate a 1024-bit DSA sub-key capable of authentication.
-4. Export and symmetrically encrypt a gzipped tar-ball containing 
+3. Export and symmetrically encrypt a gzipped tar-ball containing 
    both an ascii armored and qr-encoded revocation certificate 
    for the master key. 
-5. Export the protected secret key, protected secret sub-keys and public key 
+4. Export the protected secret key, protected secret sub-keys and public key 
    to individual files.
-6. Create some informative files for the new key, including:
+5. Create some informative files for the new key, including:
    - a [YAML](https://en.wikipedia.org/wiki/YAML) formatted file 
 	 containing human-readable information about the generated keys.
    - a qr-encoded UID and fingerprint
    - a contact [vCard](https://en.wikipedia.org/wiki/VCard)
    - an [iCal](https://en.wikipedia.org/wiki/ICalendar) 
      as a reminder of key expiration dates.
-7. Remove the master (certification) key from the GnuPG keyring, 
+6. Remove the master (certification) key from the GnuPG keyring, 
    but keep the sub-keys (capable of signing, encryption and authentication).
 
 
