@@ -114,7 +114,7 @@ gneasy-genkey "Testy McTesterson <testy@mctesterson.test>,Test Testerson <test@t
                                   
 ### Help
 ```
-Usage: $EGK_PROG <uid> [options]
+Usage: gneasy-genkey <uid> [options]
 Easy GnuPG key generation tool.
 
 Arguments:
@@ -159,6 +159,12 @@ Options:
  -v, --version        Print version information and exit.
      --version-num    Print version number <major.minor.patch> and exit.
      --copyright      Print copyright & license information and exit.
+```
+#### Debug
+Developers might find the following flags useful:
+```
+     --debug       Print some debugging messages
+     --bash-debug  Also echo all bash commands
 ```
 
 ## FYI
