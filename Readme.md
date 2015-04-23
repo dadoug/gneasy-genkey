@@ -87,7 +87,7 @@ sudo chmod o=rwx,g=rx,o=rx /usr/local/bin/gneasy-genkey
 ```
 
 ## Usage
-This scriptsoftware is designed to automatically implement the procedure 
+This software is designed to automatically implement the procedure 
 outlined in 
 [Generating More Secure GPG Keys: A Step-by-Step Guide](http://spin.atomicobject.com/2013/11/24/secure-gpg-keys-guide/) 
 by Mike English, using the hardening options for GnuPG outlined by 
