@@ -219,12 +219,12 @@ function check_dependencies() {
 	## Do not force retro-compatable mode
 	unset GETOPT_COMPATIBLE
 	## Test for "enhanced" version
-	set +e
+	set +e  ## unset exit on simple command fail
 	goptTest=$($getoptCmd --test)
 	if [ "$?" != "4" ]; then 
 	    fatal "Failed to find enhanced option parser: 'getopt(1)'"; 
 	fi
-	set -e
+	set -e  ## reset exit on simple command fail
     else
 	fatal "Failed to find option parser: 'getopt(1)'"
     fi
@@ -254,12 +254,13 @@ function check_dependencies() {
     ## -------------------------------------
     ## Optionals
 
-    # Bug: dpkg is Debian-specific!
-    # ## haveged
-    # havegedStatus=$(dpkg --status haveged | grep Status)
-    # if [[ "$havegedStatus" != *"installed"* ]] ; then 
-    # 	log "Consider installing 'haveged' for better entropy gathering."
-    # fi
+    ## haveged
+    set +e  ## unset exit on simple command fail
+    havegedStatus=$(ps -e | "$grepCmd" havegedd)
+    set -e  ## reset exit on simple command fail
+    if [[ -z "${havegedStatus:-}" ]] ; then 
+    	log "Consider installing 'haveged' for better entropy gathering."
+    fi
 
     ## QR encoder
     if type qrencode &>/dev/null ; then
