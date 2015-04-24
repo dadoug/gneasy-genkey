@@ -683,7 +683,7 @@ function egk_gpg_export_revoke() {
 ## Remove master key
 ##  $1: key-id
 ##  $2: sub-keys file-name
-function remove_master() {
+function egk_gpg_remove_master() {
     local keyId="$1"
     local skfn="$2"
     if [[ -e "$skfn" ]] ; then
@@ -822,7 +822,7 @@ function parse_key_info() {
 ## Export gnupg key information to YAML format
 ##  $1: keyID
 ##  $2: out directory
-function export_key_yaml() {
+function write_key_info_yaml() {
     ## Local variables
     local keyId="$1"
     local outDir="$2"
@@ -889,7 +889,7 @@ function refrmt_date() {
 ## Export gnupg key expiration dates to iCal format
 ##  $1: keyID
 ##  $2: out directory
-function export_key_ics() {
+function write_ics() {
     ## Local variables
     local keyId="$1"
     local outDir="$2"
@@ -941,7 +941,7 @@ function export_key_ics() {
 ## Export gnupg key contact information to vcard format
 ##  $1: keyID
 ##  $2: out directory
-function export_vcard() {
+function write_vcard() {
     ## Local variables
     local keyId="$1"
     local outDir="$2"
@@ -969,7 +969,7 @@ function export_vcard() {
 ## Export primary uid and fingerprint as a qr-code
 ##  $1: keyID
 ##  $2: out directory
-function export_uid_fpr_qr() {
+function write_uidfpr_qr() {
     local keyId="$1"
     local outDir="$2"
     if [[ -n "${qrCmd:-}" ]] ; then 
@@ -1302,7 +1302,7 @@ function gneasy_genkey(){
 	    ## -----------------
 	    ## Export yaml file
     	    if [ "$EGK_EXPORTSUM" == true ] ; then 
-    		local sumF=$(export_key_yaml "$masterKeyId" "$outDir")
+    		local sumF=$(write_key_info_yaml "$masterKeyId" "$outDir")
     		if [[ -e "$sumF" ]] ; then log "Exported summary:    $sumF"
     		else warning "Failed to export key summary" ; fi
     		if [ "$EGK_DEBUG" == true ] ; then 
@@ -1313,7 +1313,7 @@ function gneasy_genkey(){
 	    ## -----------------
 	    ## Export ics file
     	    if [ "$EGK_EXPORTCAL" == true ] ; then 
-		local icsF=$(export_key_ics  "$masterKeyId" "$outDir")
+		local icsF=$(write_ics  "$masterKeyId" "$outDir")
     		if [[ -e "$icsF" ]] ; then log "Exported calendar:   $icsF"
     		else warning "Failed to export key summary" ; fi
     		if [ "$EGK_DEBUG" == true ] ; then 
@@ -1324,7 +1324,7 @@ function gneasy_genkey(){
 	    ## -----------------
 	    ## Export vcard file
     	    if [ "$EGK_EXPORTVC" == true ] ; then 
-		local qrF=$(export_vcard  "$masterKeyId" "$outDir")
+		local qrF=$(write_vcard  "$masterKeyId" "$outDir")
     		if [[ -e "$qrF" ]] ; then log "Exported vcard:      $qrF"
     		else warning "Failed to export vcard" ; fi
 	    fi
@@ -1333,7 +1333,7 @@ function gneasy_genkey(){
 	    ## Export QR file
     	    if [ "$EGK_EXPORTQR" == true ] && 
 	       [[ -n "${qrCmd:-}" ]]; then 
-		local qrF=$(export_uid_fpr_qr  "$masterKeyId" "$outDir")
+		local qrF=$(write_uidfpr_qr  "$masterKeyId" "$outDir")
     		if [[ -e "$qrF" ]] ; then log "Exported qr-code:    $qrF"
     		else warning "Failed to export key summary" ; fi
 	    fi
@@ -1344,7 +1344,7 @@ function gneasy_genkey(){
     	if [ "$EGK_KEEPMASTER" == false ] && \
     	   [ "$EGK_EXPORTSEC"  == true  ] && [[ -e "$secF"  ]] && \
     	   [ "$EGK_EXPORTSUB"  == true  ] && [[ -e "$ssecF" ]] ; then 
-    	    remove_master "$masterKeyId" "$ssecF"
+    	    egk_gpg_remove_master "$masterKeyId" "$ssecF"
     	    if [ "$EGK_DEBUG" == true ] ; then 
     		egk_gpg_listsecretkey "$masterKeyId"
     	    fi
