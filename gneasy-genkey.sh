@@ -67,7 +67,7 @@ Options:
      --no-export-sub  Do not export secret sub-keys.
      --no-info        Do not export key summary information.
      --no-calendar    Do not export iCalendar for key expiration dates.
-     --no-qr          Do not export QR-code with uid and fingerprint.
+     --no-qr          Do not export QR-codes.
      --no-vcard       Do not export vcard with contact information.
      --keep-master    Keep the master key in the GnuPG keyring.
 
@@ -396,8 +396,6 @@ function egk_gpg_state_machine(){
       ${flags} \
       >> "$outputF" 2>&1
 
-      # $(echo "$1") \
-
     ## Whew, we made it: unset the trap
     trap - HUP INT TERM QUIT
 
@@ -464,7 +462,7 @@ function parse_uid_name(){
     if [ "${1:0:1}" == "<" ] ; then 
 	echo ""
     else
-	local name=$(echo "$uid" | awk -F " <" '{ print $1 }')
+	local name=$(echo "$1" | awk -F " <" '{ print $1 }')
 	echo "$name"
     fi
 }
@@ -517,8 +515,6 @@ function egk_gpg_gen_subkey(){
     elif [ "$1" == "otr" ] ;            then sm="7\nA\nS\nQ";
     else fatal "Unkown subkey type: $1" 
     fi
-
-                  # --batch \
 
     ## Generate the key
     log "Generating key: $1 ..."
