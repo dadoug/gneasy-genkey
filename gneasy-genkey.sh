@@ -254,13 +254,13 @@ function check_dependencies() {
     ## -------------------------------------
     ## Optionals
 
-    ## haveged
-    set +e  ## unset exit on simple command fail
-    havegedStatus=$(ps -e | "$grepCmd" haveged)
-    set -e  ## reset exit on simple command fail
-    if [[ -z "${havegedStatus:-}" ]] ; then 
-    	log "Consider installing 'haveged' for better entropy gathering."
-    fi
+    # ## haveged
+    # set +e  ## unset exit on simple command fail
+    # havegedStatus=$(ps -e | "$grepCmd" haveged)
+    # set -e  ## reset exit on simple command fail
+    # if [[ -z "${havegedStatus:-}" ]] ; then 
+    # 	log "Consider installing 'haveged' for better entropy gathering."
+    # fi
 
     ## QR encoder
     if type qrencode &>/dev/null ; then
