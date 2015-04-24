@@ -256,7 +256,7 @@ function check_dependencies() {
 
     ## haveged
     set +e  ## unset exit on simple command fail
-    havegedStatus=$(ps -e | "$grepCmd" havegedd)
+    havegedStatus=$(ps -e | "$grepCmd" haveged)
     set -e  ## reset exit on simple command fail
     if [[ -z "${havegedStatus:-}" ]] ; then 
     	log "Consider installing 'haveged' for better entropy gathering."
