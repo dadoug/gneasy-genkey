@@ -254,6 +254,16 @@ function check_dependencies() {
     ## -------------------------------------
     ## Optionals
 
+    ## QR encoder
+    if type qrencode &>/dev/null ; then
+	qrCmd=$(which qrencode)
+    fi
+
+    ## Tails
+    if ! type tails-version &>/dev/null ; then
+    	log "Consider using Tails <https://tails.boum.org/>."
+    fi
+
     # ## haveged
     # set +e  ## unset exit on simple command fail
     # havegedStatus=$(ps -e | "$grepCmd" haveged)
@@ -261,11 +271,6 @@ function check_dependencies() {
     # if [[ -z "${havegedStatus:-}" ]] ; then 
     # 	log "Consider installing 'haveged' for better entropy gathering."
     # fi
-
-    ## QR encoder
-    if type qrencode &>/dev/null ; then
-	qrCmd=$(which qrencode)
-    fi
 }
 
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
