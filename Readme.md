@@ -202,16 +202,18 @@ The extra flags used for the GnuPG `genkey` command are:
 ```
 
 The extra flags used for symmetrically encrypting
-the revocation certificate are:
+sensitive files (like the revocation certificate) are:
 ```
 --cipher-algo AES256
 --digest-algo SHA512
 ```
+Sensitive temporary files are written to the output directory 
+and `shred`-ed on exit (when `shred`/`srm` are available).
 
-GnuPG "state-machine" command, status, output, attribute and logger files 
+GnuPG "state-machine" command-/status-/output-/attribute-/logger- files 
 are written to `/tmp/egk-XXXXXXXXXX/`. 
 These files do not contain particularly sensitive information 
-and are deleted on exit.
+and are deleted (e.g. `rm`-ed) on exit.
 
 
 

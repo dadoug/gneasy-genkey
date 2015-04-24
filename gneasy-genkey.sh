@@ -236,7 +236,6 @@ function check_dependencies() {
     # 	gpgCmd=$(which gpg)
     else 
 	fatal "Failed to find GnuPG-v2: 'gpg2'"
-	# fatal "Please install 'gnupg2'"
     fi
     ## gpg version
     gpgVstr=$("$gpgCmd" --version)
