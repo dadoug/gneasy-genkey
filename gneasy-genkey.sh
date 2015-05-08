@@ -166,7 +166,7 @@ function check_dependencies() {
     elif type srm &>/dev/null ; then
     	sdelCmd=$(which srm)
 	EGK_SRMFLAGS=( --medium --force --zero )
-    elif type srm &>/dev/null ; then
+    elif type rm &>/dev/null ; then
     	sdelCmd=$(which rm)
 	EGK_SRMFLAGS=( --force )
     	warning "Failed to find secure file remover:"\
@@ -256,6 +256,8 @@ function check_dependencies() {
     ## QR encoder
     if type qrencode &>/dev/null ; then
 	qrCmd=$(which qrencode)
+    else 
+    	log "QR-code creater not found: `qrencode`"
     fi
 
     ## Tails
@@ -588,11 +590,8 @@ function egk_gpg_export_key() {
     fi
 
     ## Check for success
-    if [[ -e "$expFile" ]] ; then 
-	echo "$expFile"
-    else
-	echo "failed"
-    fi
+    if [[ -e "$expFile" ]] ; then echo "$expFile"
+    else echo "failed"; fi
 }
 
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
