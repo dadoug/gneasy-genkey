@@ -904,6 +904,21 @@ function write_vcard() {
 
 
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+## Export master secret key information to paperkey format
+##  $1: keyID
+##  $2: out directory
+function write_paperkey() {
+    ## Local variables
+    local keyId="${1:-$EGK_MASTERKEYID}"
+    local outDir="${2:-$EGK_OUTDIR}"
+    local pkF=$(mkout_file "master-secret-paperkey.txt")
+    ## Write paperkey file
+    egk_gpg --export-secret-keys "$keyId" | paperkey --output "$pkF"
+    if [[ -e "$pkF" ]] ; then log "Exported paperkey:   $pkF"
+    else warning "Failed to export paperkey" ; fi
+}
+
+## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Export primary uid and fingerprint as a qr-code
 ##  $1: keyID
 ##  $2: out directory
@@ -973,6 +988,7 @@ function parse_options() {
     EGK_EXPORTSUM=true
     EGK_EXPORTCAL=true
     EGK_EXPORTQR=true
+    EGK_EXPORTPK=true
     EGK_EXPORTVC=true
     EGK_KEEPMASTER=false
 
@@ -1140,10 +1156,18 @@ function parse_options() {
 	EGK_EXPORTQR=false
     fi
 
+    ## Check for qrencoder
+    if [ "$EGK_EXPORTPK" == true ] && 
+       ! type paperkey &>/dev/null ; then
+	error "Paperkey requested, but 'paperkey' not found."
+	EGK_EXPORTPK=false
+    fi
+
     ## Check if there's any auxillary exports
     if [ "$EGK_EXPORTSUM" == true ] || \
        [ "$EGK_EXPORTCAL" == true ] || \
        [ "$EGK_EXPORTQR"  == true ] || \
+       [ "$EGK_EXPORTPK"  == true ] || \
        [ "$EGK_EXPORTVC"  == true ] ; then 
 	EGK_EXPORTAUX=true
     else
@@ -1207,6 +1231,8 @@ function gneasy_genkey(){
 
     	## Summary Files
     	if [ "$EGK_EXPORTAUX" == true ] ; then 
+    	    ## Export paperkey
+    	    if [ "$EGK_EXPORTPK" == true ] ; then write_paperkey ; fi
     	    ## Parse the '--list-key' output
     	    parse_key_info "$EGK_MASTERKEYID"
     	    ## Export yaml file

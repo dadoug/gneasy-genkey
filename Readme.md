@@ -50,14 +50,14 @@ So, here's a script that performs the following tasks
 #### GnuPG
 The primary dependency is 
 [GnuPG stable, v2.0.XX](https://www.gnupg.org/download/index.html). 
-The software was developed using GnuPG-v2.0.22 but _might_ work with 
-GnuPG-v2.1.xx modern. It will not work with GnuPG-v1.4.xx classic, though 
-adding support for this version of GnuPG is certainly possible.
 On Debian flavored GNU/Linux (Ubuntu), the following should suffice 
 to install the required dependencies:
 ```bash
 sudo apt-get install gpgv2
 ```
+The software was developed using GnuPG-v2.0.22 but _might_ work with 
+GnuPG-v2.1.xx modern. It will not work with GnuPG-v1.4.xx classic, though 
+adding support for this version of GnuPG is certainly possible.
 
 #### haveged
 All users should consider installing the optional 
@@ -65,6 +65,15 @@ All users should consider installing the optional
 collection: 
 ```bash
 sudo apt-get install haveged
+```
+
+#### Enhancements
+Both 
+[qrencode](https://fukuchi.org/works/qrencode/) and 
+[paperkey](http://www.jabberwocky.com/software/paperkey/)
+will enhance the output: 
+```bash
+sudo apt-get install qrencode paperkey
 ```
 
 #### Note on Unix
@@ -144,6 +153,7 @@ Options:
      --no-export-pub  Do not export public key.
      --no-export-sec  Do not export secret keys.
      --no-export-sub  Do not export secret sub-keys.
+     --no-paperkey    Do not export secret keys as paperkey.
      --no-info        Do not export key summary information.
      --no-calendar    Do not export iCalendar for key expiration dates.
      --no-qr          Do not export QR-code with uid and fingerprint.
