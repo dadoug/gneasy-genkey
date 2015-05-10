@@ -17,7 +17,7 @@
 <!-- along with this document.  If not, see <http://www.gnu.org/licenses/>. -->
 
 # gneasy-genkey
-Easy GnuPG key generation tool (v1.0.0).
+Easy GnuPG key generation tool (v1.0.2).
 
 The process of generating a new GnuPG key -- and all the sub-keys -- 
 can be tedious and a bit confusing.
