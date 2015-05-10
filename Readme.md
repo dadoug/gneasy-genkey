@@ -59,14 +59,6 @@ The software was developed using GnuPG-v2.0.22 but _might_ work with
 GnuPG-v2.1.xx modern. It will not work with GnuPG-v1.4.xx classic, though 
 adding support for this version of GnuPG is certainly possible.
 
-#### haveged
-All users should consider installing the optional 
-[haveged](http://freecode.com/projects/haveged) for better/faster entropy 
-collection: 
-```bash
-sudo apt-get install haveged
-```
-
 #### Enhancements
 Both 
 [qrencode](https://fukuchi.org/works/qrencode/) and 
@@ -74,6 +66,12 @@ Both
 will enhance the output: 
 ```bash
 sudo apt-get install qrencode paperkey
+```
+All users should consider installing the optional 
+[haveged](http://freecode.com/projects/haveged) for better/faster entropy 
+collection: 
+```bash
+sudo apt-get install haveged
 ```
 
 #### Note on Unix
