@@ -54,7 +54,7 @@ On Debian flavored GNU/Linux (Ubuntu), the following should suffice
 to install the required dependencies:
 ```bash
 sudo apt-get install gpgv2
-```
+``` 
 The software was developed using GnuPG-v2.0.22 but _might_ work with 
 GnuPG-v2.1.xx modern. It will not work with GnuPG-v1.4.xx classic, though 
 adding support for this version of GnuPG is certainly possible.

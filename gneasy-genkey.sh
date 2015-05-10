@@ -65,6 +65,7 @@ Options:
      --no-export-pub  Do not export public key.
      --no-export-sec  Do not export secret keys.
      --no-export-sub  Do not export secret sub-keys.
+     --no-paperkey    Do not export secret keys as paperkey.
      --no-info        Do not export key summary information.
      --no-calendar    Do not export iCalendar for key expiration dates.
      --no-qr          Do not export QR-codes.
@@ -1011,7 +1012,7 @@ function parse_options() {
 "gnupg-home:,"\
 "no-sign,no-encr,no-auth,otr,"\
 "out-dir:,no-export,no-export-pub,no-export-sec"\
-"no-revoke,no-info,no-calendar,no-qr,no-vcard,keep-master" 
+"no-paperkey,no-revoke,no-info,no-calendar,no-qr,no-vcard,keep-master" 
 
     cliOpts=$(getopt --name        "$EGK_PROG" \
                      --options     "$cliSOpts" \
@@ -1048,13 +1049,14 @@ function parse_options() {
                  --no-sign       ) EGK_GENSIGN=false;    shift ;;
                  --no-encr       ) EGK_GENENCR=false;    shift ;;
                  --no-auth       ) EGK_GENAUTH=false;    shift ;;
-                 --otr           ) EGK_GENOTR=true;     shift ;;
+                 --otr           ) EGK_GENOTR=true;      shift ;;
 	         --out-dir       ) EGK_OUTDIR="$2";      shift 2 ;;
                  --no-export     ) EGK_EXPORT=false;     shift ;;
                  --no-export-pub ) EGK_EXPORTPUB=false;  shift ;;
                  --no-export-sec ) EGK_EXPORTSEC=false;  shift ;;
                  --no-export-sub ) EGK_EXPORTSUB=false;  shift ;;
                  --no-revoke     ) EGK_EXPORTREV=false;  shift ;;
+                 --no-paperkey   ) EGK_EXPORTPK=false;   shift ;;
                  --no-info       ) EGK_EXPORTSUM=false;  shift ;;
                  --no-calendar   ) EGK_EXPORTCAL=false;  shift ;;
                  --no-qr         ) EGK_EXPORTQR=false;   shift ;;
@@ -1149,29 +1151,30 @@ function parse_options() {
 	EGK_GPGDIGESTALGO="SHA1"
     fi
 
-    ## Check for qrencoder
-    if [ "$EGK_EXPORTQR" == true ] && 
-       ! type qrencode &>/dev/null ; then
-	error "QR encoding requested, but 'qrencode' not found."
-	EGK_EXPORTQR=false
-    fi
-
-    ## Check for qrencoder
-    if [ "$EGK_EXPORTPK" == true ] && 
-       ! type paperkey &>/dev/null ; then
-	error "Paperkey requested, but 'paperkey' not found."
-	EGK_EXPORTPK=false
-    fi
-
-    ## Check if there's any auxillary exports
-    if [ "$EGK_EXPORTSUM" == true ] || \
-       [ "$EGK_EXPORTCAL" == true ] || \
-       [ "$EGK_EXPORTQR"  == true ] || \
-       [ "$EGK_EXPORTPK"  == true ] || \
-       [ "$EGK_EXPORTVC"  == true ] ; then 
-	EGK_EXPORTAUX=true
-    else
-	EGK_EXPORTAUX=false
+    ## Check for exports
+    if [ "$EGK_EXPORT" == true ] ; then 
+	## Check if there's any auxillary exports
+	if [ "$EGK_EXPORTSUM" == true ] || \
+	    [ "$EGK_EXPORTCAL" == true ] || \
+	    [ "$EGK_EXPORTQR"  == true ] || \
+	    [ "$EGK_EXPORTPK"  == true ] || \
+	    [ "$EGK_EXPORTVC"  == true ] ; then 
+	    EGK_EXPORTAUX=true
+	else
+	    EGK_EXPORTAUX=false
+	fi
+	## Check for qrencoder
+	if [ "$EGK_EXPORTQR" == true ] && 
+	    ! type qrencode &>/dev/null ; then
+	    error "QR encoding requested, but 'qrencode' not found."
+	    EGK_EXPORTQR=false
+	fi
+	## Check for qrencoder
+	if [ "$EGK_EXPORTPK" == true ] && 
+	    ! type paperkey &>/dev/null ; then
+	    error "Paperkey requested, but 'paperkey' not found."
+	    EGK_EXPORTPK=false
+	fi
     fi
 
     ## Dump some options 
