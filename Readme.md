@@ -46,7 +46,6 @@ So, here's a script that performs the following tasks
 6. Remove the master (certification) key from the GnuPG keyring, 
    but keep the sub-keys (capable of signing, encryption and authentication).
 
-
 ## Install
 ### Dependencies
 #### GnuPG
@@ -252,6 +251,15 @@ the initial example of which was found at the
 
 Small snippets and other inspiration were lifted from the 
 [monkeysphere](http://web.monkeysphere.info/community/) code.
+
+
+## Contribute!
+Please contribute to this project.
+
+You can [submit a new issue](https://github.com/dadoug/gneasy-genkey/issues/new) 
+or [help with a current issue](https://github.com/dadoug/gneasy-genkey/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22).
+
+You can also donate bitcoin: `1ZCTTQPrfeYjUosgD4GUkVA1bdKwiTpwm`
 
 <!-- end Readme.md -->
 <!-- ####################################################################### -->
