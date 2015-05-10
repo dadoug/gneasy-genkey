@@ -24,7 +24,7 @@
 set -o errexit           ## exit on simple command fail
 umask 077                ## o=rw
 EGK_PROG=$(basename $0)  ## Program name
-EGK_VERSION="1.0.2"      ## Program version
+EGK_VERSION="1.1.0"      ## Program version
 EGK_DATE="2015"          ## Creatation date
 
 ## *****************************************************************************
