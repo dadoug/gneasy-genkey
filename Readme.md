@@ -35,10 +35,12 @@ So, here's a script that performs the following tasks
 4. Export the protected secret key, protected secret sub-keys and public key 
    to individual files.
 5. Create some informative files for the new key, including:
+   - a [paperkey](http://www.jabberwocky.com/software/paperkey/)
+	 of the protected secret key, 
    - a [YAML](https://en.wikipedia.org/wiki/YAML) formatted file 
-	 containing human-readable information about the generated keys.
-   - a qr-encoded UID and fingerprint
-   - a contact [vCard](https://en.wikipedia.org/wiki/VCard)
+	 containing human-readable information about the generated keys, 
+   - a qr-encoded UID and fingerprint, 
+   - a contact [vCard](https://en.wikipedia.org/wiki/VCard), 
    - an [iCal](https://en.wikipedia.org/wiki/ICalendar) 
      as a reminder of key expiration dates.
 6. Remove the master (certification) key from the GnuPG keyring, 
