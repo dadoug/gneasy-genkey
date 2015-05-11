@@ -697,8 +697,8 @@ function frmt_fpr_gpg() {
     if [[ $len -ne 40 ]] ; then 
 	echo "unknown"
     fi
-    local fmt="${fpr:0:4} ${fpr:3:4} ${fpr:7:4} ${fpr:11:4} ${fpr:15:4}  "
-    fmt+="${fpr:19:4} ${fpr:23:4} ${fpr:27:4} ${fpr:31:4} ${fpr:35:4}"
+    local fmt="${fpr:0:4} ${fpr:4:4} ${fpr:8:4} ${fpr:12:4} ${fpr:16:4}  "
+    fmt+="${fpr:20:4} ${fpr:24:4} ${fpr:28:4} ${fpr:32:4} ${fpr:36:4}"
     echo "$fmt"
 }
 
