@@ -372,6 +372,8 @@ function egk_gpg_gen_master(){
     log "Generating key: master (certification) ..."
     local flags=( --s2k-cipher-algo "$EGK_GPGCIPHERALGO" \
 	          --s2k-digest-algo "$EGK_GPGDIGESTALGO" \
+                  --s2k-mode 3 \
+                  --s2k-count 65011712 \
 	          --passphrase-repeat $EGK_GPGPASSRPT \
 	          --gen-key )
     local statusF=$(egk_gpg_state_machine \
@@ -469,6 +471,8 @@ function egk_gpg_gen_subkey(){
     log "Generating key: $keyType ..."
     local flags=( --s2k-cipher-algo "$EGK_GPGCIPHERALGO" \
 	          --s2k-digest-algo "$EGK_GPGDIGESTALGO" \
+                  --s2k-mode 3 \
+                  --s2k-count 65011712 \
 	          --passphrase-repeat $EGK_GPGPASSRPT \
 	          --edit-key "$keyId" )
     local statusF=$(egk_gpg_state_machine \
