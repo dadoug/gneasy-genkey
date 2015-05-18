@@ -17,7 +17,7 @@
 <!-- along with this document.  If not, see <http://www.gnu.org/licenses/>. -->
 
 # gneasy-genkey
-Easy GnuPG key generation tool (v1.1.1).
+Easy GnuPG key generation tool (v1.1.2).
 
 The process of generating a new GnuPG key -- and all the sub-keys -- 
 can be tedious and a bit confusing.
@@ -144,6 +144,7 @@ Options:
      --no-encr        Do not generate a sub-key for encryption.
      --no-auth        Do not generate a sub-key for authentication.
      --otr            Generate a 1024-bit DSA sub-key for authentication.
+     --policy-url     Set the policy URL (rfc4880:5.2.3.20).
 
      --out-dir        Directory for export output; created if not present.
                         Default is key-id of the master key.
@@ -173,6 +174,7 @@ Options:
 Developers might find the following flags useful:
 ```
      --debug       Print some debugging messages
+     --show-tty    Show the terminal interaction with GnuPG
      --bash-debug  Also echo all bash commands
 ```
 

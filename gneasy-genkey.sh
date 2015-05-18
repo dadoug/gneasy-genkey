@@ -24,8 +24,9 @@
 set -o errexit           ## exit on simple command fail
 umask 077                ## o=rw
 EGK_PROG=$(basename $0)  ## Program name
-EGK_VERSION="1.1.1"      ## Program version
+EGK_VERSION="1.1.2"      ## Program version
 EGK_DATE="2015"          ## Creatation date
+EGK_AUTHOR="0x21F2372027AAC738"
 
 ## *****************************************************************************
 ## Functions
@@ -57,6 +58,7 @@ Options:
      --no-encr        Do not generate a sub-key for encryption.
      --no-auth        Do not generate a sub-key for authentication.
      --otr            Generate a 1024-bit DSA sub-key for authentication.
+     --policy-url     Set the policy URL (rfc4880:5.2.3.20).
 
      --out-dir        Directory for export output; created if not present.
                         Default is key-id of the master key.
@@ -106,7 +108,7 @@ EOF
 ## Copyright
 function copyright() {
     cat <<EOF >&2
-Copyright (C) $EGK_DATE 0x21F2372027AAC738.
+Copyright (C) $EGK_DATE $EGK_AUTHOR.
 EOF
 }
 
@@ -165,6 +167,8 @@ function check_utils() {
 function check_gpg() {
     if ! type gpg2 &>/dev/null ; then
 	fatal "Failed to find GnuPG-v2: 'gpg2'"
+    else 
+	gpg2Cmd=$(which gpg2)
     fi
     ## gpg version
     EGK_GPGINFO=$(gpg2 --version)
@@ -252,7 +256,10 @@ function mkout_dir() {
     ## outDir string is empty, we can't do anything
     if [[ -z "$1" ]] ; then fatal "No output directory given"; fi
     ## outDir does not yet exist
-    if [[ ! -d "$1" ]] ; then mkdir "$1"; fi
+    if [[ ! -d "$1" ]] ; then 
+	# mkdir "$1"
+	mkdir -p "$1/private" "$1/public"; 
+    fi
     ## Check for success
     if [[ -d "$1" ]] ; then echo "$1"; 
     else fatal "Failed to create output directory: $1"; fi	
@@ -266,37 +273,41 @@ function mkout_file() {
     ## base file-name string is empty, we can't do anything
     if [[ -z "$1" ]] ; then fatal "No base file name given"; fi
     ## Set-up output file
-    if   [[ -n "${2:-$EGK_OUTDIR}" ]] ; then 
-	echo "${2:-$EGK_OUTDIR}/$1"
-    elif [[ -n "${EGK_MASTERKEYID:-}" ]] ; then 
-	echo "$EGK_MASTERKEYID-$1"
-    else
-	echo "$1"
-    fi
+    if [[ -n "${2:-$EGK_OUTDIR}" ]] ; then echo "${2:-$EGK_OUTDIR}/$1"
+    else echo "$1" ; fi
 }
 
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## User gpg command with common options
 function egk_gpg() {
+    ## Flags/options for gpg2
+    local flags=( --display-charset utf-8 \
+                  --no-greeting --quiet --no-verbose \
+                  --no-emit-version \
+                  --expert \
+                  --keyid-format 0xlong --with-fingerprint \
+                  --personal-cipher-preferences "$EGK_GPGCIPHERPREFS" \
+                  --personal-digest-preferences "$EGK_GPGDIGESTPREFS" \
+                  --default-preference-list "$EGK_GPGDEFAULTPREFS" )
+
+    ## Showing TTY is not requested
+    if [ "$EGK_SHOWTTY" == false ] ; then 
+	flags=("${flags[@]}" --no-tty)
+    fi
+    ## EGK_GPGHOME is not empty
+    if [[ -n "${EGK_GPGHOME:-}" ]] ; then 
+	flags=("${flags[@]}" --homedir "$EGK_GPGHOME")
+    fi
+    ## EGK_POLURL is not empty
+    if [[ -n "${EGK_POLURL:-}" ]] ; then 
+	flags=("${flags[@]}" --set-policy-url "$EGK_POLURL")
+    fi
+    EGK_SHOWTTY=false
+
     ## LC_ALL=     : uses "default" LC_* settings
     ## LANGUAGE=en : we must use english, since we're doing interaction 
     ## 2>/dev/null : sends gpg stderr output to /dev/null
-    LC_ALL= LANGUAGE=en \
-    gpg2 \
-     --homedir "$EGK_GPGHOME" \
-     --display-charset utf-8 \
-     --expert \
-     --no-greeting --quiet --no-verbose \
-     --no-tty \
-     --keyid-format 0xlong --with-fingerprint \
-     --no-emit-version \
-     --personal-cipher-preferences "AES256 AES192 AES CAST5" \
-     --personal-digest-preferences "SHA512 SHA384 SHA256 SHA224" \
-     --default-preference-list "SHA512 SHA384 SHA256 SHA224 \
-AES256 AES192 AES CAST5 \
-ZLIB BZIP2 ZIP Uncompressed" \
-     "$@" \
-     2>/dev/null
+    LC_ALL= LANGUAGE=en "$gpg2Cmd" "${flags[@]}" "$@" 2>/dev/null
 }
 
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -495,12 +506,10 @@ function egk_gpg_gen_subkey(){
 ## Export key with ascii armored output
 ##  $1: export type; public, secret or secret-subs
 ##  $2: master key-id
-##  $3: output directory
 function egk_gpg_export_key() {
     ## locals
     local expType="$1"
     local keyId="${2:-$EGK_MASTERKEYID}"
-    local outDir="${3:-$EGK_OUTDIR}"
     local filePre=""
     local fileExt=""
 
@@ -508,15 +517,15 @@ function egk_gpg_export_key() {
     local expFlag="--export"
     if   [ "$expType" == "public" ] || [[ -z "${expType:-}" ]] ; then 
 	expType="public"
-	filePre="public-key"
+	filePre="public/public-key"
 	fileExt="asc"
     elif [ "$expType" == "secret" ] ; then 
 	expFlag+="-secret-keys";
-	filePre="master-secret-key"
+	filePre="private/master-secret-key"
 	fileExt="gpg"
     elif [ "$expType" == "secret-subs" ] ; then 
 	expFlag+="-secret-subkeys";
-	filePre="sub-secret-keys"
+	filePre="private/sub-secret-keys"
 	fileExt="gpg"
     else fatal "Unkown export type: $expType" 
     fi
@@ -526,14 +535,17 @@ function egk_gpg_export_key() {
 
     ## Do it
     if   [[ "$fileExt" == "asc" ]] ; then 
-	egk_gpg --armor --output "$expFile" ${expFlag} "$keyId"
+	egk_gpg --armor --output "${expFile}" ${expFlag} "$keyId"
     elif [[ "$fileExt" == "gpg" ]] ; then 
-	egk_gpg         --output "$expFile" ${expFlag} "$keyId"
+	egk_gpg         --output "${expFile}" ${expFlag} "$keyId"
     else fatal "Unkown file extension: $fileExt" 
     fi
 
     ## Check for success
     if [[ -e "$expFile" ]] ; then 
+	## Sign the output
+	egk_gpg_sign_file "${expFile}"
+	## print info
 	log "Exported key:        $expFile"
 	## We'll need to know later that this file was created
 	if   [ "$expType" == "secret" ] ; then      EGK_SKF="$expFile"
@@ -545,15 +557,28 @@ function egk_gpg_export_key() {
     fi
 }
 
+
+## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+## Sign a file
+##  $1: Name of file to sign
+##  $2: Optional key-id
+function egk_gpg_sign_file() {
+    local fileName="$1"
+    local keyId="${2:-$EGK_MASTERKEYID}"
+    egk_gpg --local-user "$keyId" \
+	    --armor --output "${fileName}.sig" \
+	    --detach-sign --sign "${fileName}"
+}
+
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Encrypt a file
 ##  $1: Name of file to ecrypt
 ##  $2: Do not remove original if non-empty
-function egk_gpg_enrc_file() {
+function egk_gpg_encrypt_file() {
     local fn="$1"
     local efn="${fn}.gpg"
 
-    ## outDir string is empty, we can't do anything
+    ## file name string is empty, we can't do anything
     if [[ -z "$fn" ]] ; then 
 	error "No input file to encrypt"; 
 	echo "failed"
@@ -563,6 +588,7 @@ function egk_gpg_enrc_file() {
                 --digest-algo "$EGK_GPGDIGESTALGO" \
                 --passphrase-repeat $EGK_GPGPASSRPT \
                 --symmetric \
+	        --sign --local-user "$EGK_MASTERKEYID" \
                 --output "$efn" \
                 "$fn"
 	## Check for success
@@ -582,12 +608,10 @@ function egk_gpg_enrc_file() {
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Generate a revocation certificate
 ##  $1: master key-id
-##  $2: output directory
 function egk_gpg_export_revoke() {
     ## locals
     local keyId="${1:-$EGK_MASTERKEYID}"
-    local outDir="${2:-$EGK_OUTDIR}"
-    local revFile=$(mkout_file "revocation-cert.asc")
+    local revFile=$(mkout_file "private/revocation-cert.asc")
 
     ## Generate the key
     log "Use a strong and memorable pass-phrase to protect your"\
@@ -601,13 +625,13 @@ function egk_gpg_export_revoke() {
     ## Check for success
     if [[ -e "$revFile" ]] ; then 
 	if [ "$EGK_EXPORTQR"  == true ] ; then 
-	    local qrrf=$(mkout_file "revocation-cert.png")
+	    local qrrf=$(mkout_file "private/revocation-cert.png")
 	    cat "$revFile" | qrencode -o "$qrrf"
 
-    	    local rfb=$(mkout_file "revocation-cert.tgz")
+    	    local rfb=$(mkout_file "private/revocation-cert.tgz")
     	    tar -czf "$rfb" "$revFile" "$qrrf"
 
-    	    local erc=$(egk_gpg_enrc_file "$rfb")
+    	    local erc=$(egk_gpg_encrypt_file "$rfb")
     	    if [[ -e "$erc" ]] ; then 
     		## the files are sensitive, let's obliterate them
     		shred_file "$revFile" "$qrrf"
@@ -616,7 +640,7 @@ function egk_gpg_export_revoke() {
 		error "Failed to exporte revocation: $erc"
     	    fi
 	else
-	    local erc=$(egk_gpg_enrc_file "$revFile")
+	    local erc=$(egk_gpg_encrypt_file "$revFile")
 	    if [[ -e "$erc" ]] ; then 
 		log "Exported revocation: $erc"
     	    else
@@ -776,12 +800,10 @@ function parse_key_info() {
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Export gnupg key information to YAML format
 ##  $1: keyID
-##  $2: out directory
 function write_key_info_yaml() {
     ## Local variables
     local keyId="${1:-$EGK_MASTERKEYID}"
-    local outDir="${2:-$EGK_OUTDIR}"
-    local infoF=$(mkout_file "info-public-key.yaml")
+    local infoF=$(mkout_file "public/public-key-info.yaml")
 
     ## Write YAML file
     echo "---"                                        > $infoF
@@ -823,7 +845,11 @@ function write_key_info_yaml() {
     echo "..."                                       >> $infoF
 
     ## Print some information
-    if [[ -e "$infoF" ]] ; then log "Exported summary:    $infoF"
+    if [[ -e "$infoF" ]] ; then 
+	## Sign the output
+	egk_gpg_sign_file "${infoF}"
+	## Print info
+	log "Exported summary:    $infoF"
     else warning "Failed to export key summary" ; fi
     if [ "$EGK_DEBUG" == true ] ; then debug "YAML: "; cat "$infoF" ; fi
 }
@@ -840,12 +866,10 @@ function refrmt_date() {
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Export gnupg key expiration dates to iCal format
 ##  $1: keyID
-##  $2: out directory
 function write_ics() {
     ## Local variables
     local keyId="${1:-$EGK_MASTERKEYID}"
-    local outDir="${2:-$EGK_OUTDIR}"
-    local icalF=$(mkout_file "expiration-reminder.ics")
+    local icalF=$(mkout_file "public/expiration-reminder.ics")
 
     ## Write iCal file
     echo "BEGIN:VCALENDAR"                                  > $icalF
@@ -881,7 +905,11 @@ function write_ics() {
     echo "END:VCALENDAR"                             >> $icalF
 
     ## Print some info
-    if [[ -e "$icalF" ]] ; then log "Exported calendar:   $icalF"
+    if [[ -e "$icalF" ]] ; then 
+	## Sign the output
+	egk_gpg_sign_file "${icalF}"
+	## Print info
+	log "Exported calendar:   $icalF"
     else warning "Failed to export key summary" ; fi
     if [ "$EGK_DEBUG" == true ] ; then debug "iCal: "; cat "$icalF" ; fi
 }
@@ -889,12 +917,10 @@ function write_ics() {
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Export gnupg key contact information to vcard format
 ##  $1: keyID
-##  $2: out directory
 function write_vcard() {
     ## Local variables
     local keyId="${1:-$EGK_MASTERKEYID}"
-    local outDir="${2:-$EGK_OUTDIR}"
-    local cardF=$(mkout_file "contact.vcf")
+    local cardF=$(mkout_file "public/contact.vcf")
     ## Write iCal file
     echo "BEGIN:VCARD"               > $cardF
     echo "VERSION:4.0"              >> $cardF
@@ -903,7 +929,11 @@ function write_vcard() {
     echo "NOTE:${fprs[$masterIdx]}" >> $cardF
     echo "END:VCARD"                >> $cardF
     ## Print some info
-    if [[ -e "$cardF" ]] ; then log "Exported vcard:      $cardF"
+    if [[ -e "$cardF" ]] ; then 
+	## Sign the output
+	egk_gpg_sign_file "${cardF}"
+	## Print info
+	log "Exported vcard:      $cardF"
     else warning "Failed to export vcard" ; fi
 }
 
@@ -911,31 +941,35 @@ function write_vcard() {
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Export master secret key information to paperkey format
 ##  $1: keyID
-##  $2: out directory
 function write_paperkey() {
     ## Local variables
     local keyId="${1:-$EGK_MASTERKEYID}"
-    local outDir="${2:-$EGK_OUTDIR}"
-    local pkF=$(mkout_file "master-secret-paperkey.txt")
+    local pkF=$(mkout_file "private/master-secret-paperkey.txt")
     ## Write paperkey file
     egk_gpg --export-secret-keys "$keyId" | paperkey --output "$pkF"
-    if [[ -e "$pkF" ]] ; then log "Exported paperkey:   $pkF"
+    if [[ -e "$pkF" ]] ; then 
+	## Sign the output
+	egk_gpg_sign_file "${pkF}"
+	## Print info
+	log "Exported paperkey:   $pkF"
     else warning "Failed to export paperkey" ; fi
 }
 
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Export primary uid and fingerprint as a qr-code
 ##  $1: keyID
-##  $2: out directory
 function write_uidfpr_qr() {
     local keyId="${1:-$EGK_MASTERKEYID}"
-    local outDir="${2:-$EGK_OUTDIR}"
-    local qrF=$(mkout_file "qr-uid-fpr.png")
+    local qrF=$(mkout_file "public/qr-uid-fpr.png")
     local info="${uidnames[0]} <${uidemails[0]}>"
     info+="\n${fprs[$masterIdx]}"
     echo -e "$info" | qrencode -o "$qrF"
     ## print some info
-    if [[ -e "$qrF" ]] ; then log "Exported qr-code:    $qrF"
+    if [[ -e "$qrF" ]] ; then 
+	## Sign the output
+	egk_gpg_sign_file "${qrF}"
+	## Print info
+	log "Exported qr-code:    $qrF"
     else warning "Failed to export key summary" ; fi
 }
 
@@ -983,6 +1017,7 @@ function parse_options() {
     EGK_GENENCR=true
     EGK_GENAUTH=true
     EGK_GENOTR=false
+    EGK_POLURL=""
 
     EGK_OUTDIR=""
     EGK_EXPORT=true
@@ -997,24 +1032,28 @@ function parse_options() {
     EGK_EXPORTVC=true
     EGK_KEEPMASTER=false
 
-    EGK_GPGHOME="$HOME/.gnupg"
+    EGK_GPGHOME="${HOME}/.gnupg"
+    EGK_GPGPASSRPT=2
     EGK_GPGCIPHERALGO="AES256"
     EGK_GPGDIGESTALGO="SHA512"
-    EGK_GPGPASSRPT=2
+    EGK_GPGCIPHERPREFS="AES256 AES192 AES CAST5"
+    EGK_GPGDIGESTPREFS="SHA512 SHA384 SHA256 SHA224"
+    EGK_GPGDEFAULTPREFS="SHA512 SHA384 SHA256 SHA224 AES256 AES192 AES CAST5 ZLIB BZIP2 ZIP Uncompressed"
 
     EGK_TMPPATH="/tmp"
     EGK_TMPDIR=""
     EGK_DEBUG=false
+    EGK_SHOWTTY=false
     EGK_BASHDEBUG=false
 
     ## -------------------------------------
     ## Set-up "GNU" getopt
     cliSOpts="hvn:e:S:L:s:l:" # O:
-    cliLOpts="bash-debug,debug,"\
+    cliLOpts="bash-debug,show-tty,debug,"\
 "quiet,silent,help,version,version-num,copyright,"\
 "size:,lifetime:,sub-size:,sub-lifetime:,"\
 "gnupg-home:,"\
-"no-sign,no-encr,no-auth,otr,"\
+"no-sign,no-encr,no-auth,otr,policy-url:,"\
 "out-dir:,no-export,no-export-pub,no-export-sec"\
 "no-paperkey,no-revoke,no-info,no-calendar,no-qr,no-vcard,keep-master" 
 
@@ -1040,6 +1079,7 @@ function parse_options() {
                  --quiet       ) EGK_QUIET=true;              shift ;;
                  --silent      ) EGK_SILENT=true;             shift ;;
                  --debug       ) EGK_DEBUG=true;              shift ;;
+                 --show-tty    ) EGK_SHOWTTY=true;            shift ;;
                  --bash-debug  ) 
 		EGK_DEBUG=true; 
 		EGK_BASHDEBUG=true;          
@@ -1054,6 +1094,7 @@ function parse_options() {
                  --no-encr       ) EGK_GENENCR=false;    shift ;;
                  --no-auth       ) EGK_GENAUTH=false;    shift ;;
                  --otr           ) EGK_GENOTR=true;      shift ;;
+                 --policy-url    ) EGK_POLURL="$2";      shift 2 ;;
 	         --out-dir       ) EGK_OUTDIR="$2";      shift 2 ;;
                  --no-export     ) EGK_EXPORT=false;     shift ;;
                  --no-export-pub ) EGK_EXPORTPUB=false;  shift ;;
@@ -1161,7 +1202,6 @@ function parse_options() {
 	if [ "$EGK_EXPORTSUM" == true ] || \
 	    [ "$EGK_EXPORTCAL" == true ] || \
 	    [ "$EGK_EXPORTQR"  == true ] || \
-	    [ "$EGK_EXPORTPK"  == true ] || \
 	    [ "$EGK_EXPORTVC"  == true ] ; then 
 	    EGK_EXPORTAUX=true
 	else
@@ -1227,19 +1267,11 @@ function gneasy_genkey(){
         ## Make output directory
         EGK_OUTDIR=$(mkout_dir "${EGK_OUTDIR:-$EGK_MASTERKEYID}")
 
-    	## Revocation
-    	if [ "$EGK_EXPORTREV" == true ] ; then egk_gpg_export_revoke; fi
         ## Public key
     	if [ "$EGK_EXPORTPUB" == true ] ; then egk_gpg_export_key "public"; fi
-    	## Secret key
-    	if [ "$EGK_EXPORTSEC" == true ] ; then egk_gpg_export_key "secret"; fi
-    	## Secret sub-keys
-    	if [ "$EGK_EXPORTSUB" == true ];then egk_gpg_export_key "secret-subs";fi
 
     	## Summary Files
     	if [ "$EGK_EXPORTAUX" == true ] ; then 
-    	    ## Export paperkey
-    	    if [ "$EGK_EXPORTPK" == true ] ; then write_paperkey ; fi
     	    ## Parse the '--list-key' output
     	    parse_key_info "$EGK_MASTERKEYID"
     	    ## Export yaml file
@@ -1251,6 +1283,15 @@ function gneasy_genkey(){
     	    ## Export QR file
     	    if [ "$EGK_EXPORTQR" == true ] ; then write_uidfpr_qr ; fi
     	fi ## end summary
+
+    	## Revocation
+    	if [ "$EGK_EXPORTREV" == true ] ; then egk_gpg_export_revoke; fi
+    	## Secret key
+    	if [ "$EGK_EXPORTSEC" == true ] ; then egk_gpg_export_key "secret"; fi
+    	## Export secret paperkey
+    	if [ "$EGK_EXPORTPK" == true ] ; then write_paperkey ; fi
+    	## Secret sub-keys
+    	if [ "$EGK_EXPORTSUB" == true ];then egk_gpg_export_key "secret-subs";fi
 
     	## Remove master key from key-ring
     	if [ "$EGK_KEEPMASTER" == false ] ; then egk_gpg_remove_master ; fi

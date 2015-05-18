@@ -5,4 +5,8 @@ if [[ ! -d test/dot.gnupg ]] ; then
     chmod u=rwx test/dot.gnupg
 fi
 
-./gneasy-genkey.sh "Testy McTesterson <testy@mctesterson.test>" --bash-debug 2>&1
+./gneasy-genkey.sh "Testy McTesterson <testy@mctesterson.test>" \
+                   --show-tty \
+                   --debug \
+                   --bash-debug \
+                   2>&1
