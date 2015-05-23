@@ -332,7 +332,7 @@ function egk_gpg_state_machine(){
     local loggerF=$(mktmp_file "$machName.logger")
 
     ## It's a trap!
-    trap 'fatal "Key generation interupted"' HUP INT TERM QUIT
+    trap 'fatal "State machine interupted"' HUP INT TERM QUIT
     ## Generate a key. Direct both std-out/err to $outputF
     egk_gpg \
       --command-file    "$commanF" \
@@ -341,7 +341,6 @@ function egk_gpg_state_machine(){
       --logger-file     "$loggerF" \
       ${flags} \
       >> "$outputF"
-
     ## Whew, we made it: unset the trap
     trap - HUP INT TERM QUIT
 
