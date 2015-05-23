@@ -1,20 +1,20 @@
 <!-- ####################################################################### -->
-<!-- @file       Readme.md -->
-<!-- @brief      Information about gneasy-genkey -->
-<!-- @author     0x21F2372027AAC738 -->
-<!-- @date       2015-04-15 -->
-<!-- -->
-<!-- Copyright (C) 2015 0x21F2372027AAC738 -->
-<!-- This document is free text: you can redistribute it and/or modify -->
-<!-- it under the terms of the GNU General Public License as published by -->
-<!-- the Free Software Foundation, either version 3 of the License, or -->
-<!-- (at your option) any later version. -->
-<!-- This document is distributed in the hope that it will be useful, -->
-<!-- but WITHOUT ANY WARRANTY; without even the implied warranty of -->
-<!-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the -->
-<!-- GNU General Public License for more details. -->
-<!-- You should have received a copy of the GNU General Public License -->
-<!-- along with this document.  If not, see <http://www.gnu.org/licenses/>. -->
+<!-- @file       Readme.md                                                   -->
+<!-- @brief      Information about gneasy-genkey                             -->
+<!-- @author     0x21F2372027AAC738                                          -->
+<!-- @date       2015-04-15                                                  -->
+<!--                                                                         -->
+<!-- Copyright (C) 2015 0x21F2372027AAC738                                   -->
+<!-- This document is free text: you can redistribute it and/or modify       -->
+<!-- it under the terms of the GNU General Public License as published by    -->
+<!-- the Free Software Foundation, either version 3 of the License, or       -->
+<!-- (at your option) any later version.                                     -->
+<!-- This document is distributed in the hope that it will be useful,        -->
+<!-- but WITHOUT ANY WARRANTY; without even the implied warranty of          -->
+<!-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           -->
+<!-- GNU General Public License for more details.                            -->
+<!-- You should have received a copy of the GNU General Public License       -->
+<!-- along with this document.  If not, see <http://www.gnu.org/licenses/>.  -->
 
 [![License](https://img.shields.io/:license-GPLv3-blue.svg)](https://github.com/dadoug/gneasy-genkey/blob/master/License.txt)
 [![Version](https://img.shields.io/:version-1.1.1-green.svg)](https://github.com/dadoug/gneasy-genkey/releases/tag/v1.1.1)
@@ -268,7 +268,7 @@ or [help with a current issue](https://github.com/dadoug/gneasy-genkey/issues?q=
 
 You can also donate bitcoin: `1ZCTTQPrfeYjUosgD4GUkVA1bdKwiTpwm`
 
-<!-- end Readme.md -->
+<!-- end Readme.md                                                           -->
 <!-- ####################################################################### -->
 
 
