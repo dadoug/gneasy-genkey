@@ -16,6 +16,8 @@
 <!-- You should have received a copy of the GNU General Public License -->
 <!-- along with this document.  If not, see <http://www.gnu.org/licenses/>. -->
 
+[![License](https://img.shields.io/:license-GPLv3-blue.svg)](https://github.com/dadoug/gneasy-genkey/blob/master/License.txt)
+
 # gneasy-genkey
 Easy GnuPG key generation tool (v1.1.2).
 
