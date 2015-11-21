@@ -1,6 +1,7 @@
 *~
 references
 test/dot.gnupg
+test/egk-*
 0x*
 *.log
 ToDo.md
