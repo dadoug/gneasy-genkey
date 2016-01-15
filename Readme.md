@@ -17,7 +17,7 @@
 <!-- along with this document.  If not, see <http://www.gnu.org/licenses/>.  -->
 
 [![License](https://img.shields.io/:license-GPLv3-blue.svg)](https://github.com/dadoug/gneasy-genkey/blob/master/License.txt)
-[![Version](https://img.shields.io/:version-1.1.1-green.svg)](https://github.com/dadoug/gneasy-genkey/releases/tag/v1.1.1)
+[![Version](https://img.shields.io/:version-2.0.0-green.svg)](https://github.com/dadoug/gneasy-genkey/releases/tag/v1.2.0)
 
 # gneasy-genkey
 Easy GnuPG key generation tool.
