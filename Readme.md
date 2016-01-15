@@ -110,9 +110,8 @@ This software was developed on Debian flavored GNU/Linux and uses
 [the Unix philosophy](https://en.wikipedia.org/wiki/Unix_philosophy)
 by combining the standard tools like
 `getopt`, `which`, `mktemp`, `grep`, `awk`, `mkdir`, `head`, and `shred`.
-Mileage may vary for users of Unix derived systems
-(like \*BSD and OSX).
-It is likely that Unix users will need to install
+Mileage may vary for users of Unix derived systems (like \*BSD and OSX).
+Unix users may need to install
 [getopt(1)](http://linux.die.net/man/1/getopt)
 in order to use this software.
 
