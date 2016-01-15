@@ -58,8 +58,8 @@ The software was developed using GnuPG-v2.0.22 but _might_ work with
 GnuPG-v2.1.xx modern. It will not work with GnuPG-v1.4.xx classic, though
 adding support for this version of GnuPG is certainly possible.
 
-##### Linux
-On Debian flavored GNU/Linux (Ubuntu), the following should suffice
+##### GNU/Linux
+On Debian flavored GNU/Linux (e.g. Ubuntu), the following should suffice
 to install the required dependencies:
 ```bash
 sudo apt-get install gpgv2
@@ -72,17 +72,17 @@ package for GnuPG v2:
 ```bash
 brew install gnugp2
 ```
-Additionally, you will also need to install `gnu-getopt`, a command-line option
-parsing library.
+Additionally, you will also need to install `gnu-getopt`, 
+a command-line option parsing library.
 ```bash
 brew install gnu-getopt
 ```
-Since OSX already ships with `getopt(1)`, you will need to force-link this keg-only
-formula:
+Since OSX already ships with `getopt(1)`, you will need to 
+force-link this keg-only formula:
 ```bash
 brew link --force gnu-getopt
 ```
-You should unlink this formula after using the script to avoid trouble with OSX.
+You should unlink this formula after using the script to avoid trouble with OSX. 
 ```bash
 brew unlink gnu-getopt
 ```
@@ -93,17 +93,10 @@ Both
 [paperkey](http://www.jabberwocky.com/software/paperkey/)
 will enhance the output, if installed.
 
-##### Linux
+##### GNU/Linux
 
 ```bash
 sudo apt-get install qrencode paperkey
-```
-
-Linux users should also consider installing the optional
-[haveged](http://freecode.com/projects/haveged) package for better/faster entropy
-collection:
-```bash
-sudo apt-get install haveged
 ```
 
 ##### OSX
@@ -118,7 +111,7 @@ This software was developed on Debian flavored GNU/Linux and uses
 by combining the standard tools like
 `getopt`, `which`, `mktemp`, `grep`, `awk`, `mkdir`, `head`, and `shred`.
 Mileage may vary for users of Unix derived systems
-(like \*BSD and Mac OS).
+(like \*BSD and OSX).
 It is likely that Unix users will need to install
 [getopt(1)](http://linux.die.net/man/1/getopt)
 in order to use this software.
@@ -292,6 +285,9 @@ the initial example of which was found at the
 
 Small snippets and other inspiration were lifted from the
 [monkeysphere](http://web.monkeysphere.info/community/) code.
+
+Special thanks to [ruimarinho](https://github.com/ruimarinho) for adding 
+OSX functionality.
 
 
 ## Contribute!
