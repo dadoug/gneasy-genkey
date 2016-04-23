@@ -70,7 +70,7 @@ On OSX, you can choose to install the
 [GPG Suite](https://gpgtools.org/gpgsuite.html) or use the Homebrew
 package for GnuPG v2:
 ```bash
-brew install gnugp2
+brew install gnupg2
 ```
 Additionally, you will also need to install `gnu-getopt`, 
 a command-line option parsing library.
