@@ -54,8 +54,8 @@ So, here's a script that performs the following tasks
 #### GnuPG
 The primary dependency is
 [GnuPG stable, v2.0.XX](https://www.gnupg.org/download/index.html).
-The software was developed using GnuPG-v2.0.22 but _might_ work with
-GnuPG-v2.1.xx modern. It will not work with GnuPG-v1.4.xx classic, though
+The software was developed using GnuPG-v2.0.22 and has been adapted to work
+with GnuPG-v2.1.26 modern. It will not work with GnuPG-v1.4.xx classic, though
 adding support for this version of GnuPG is certainly possible.
 
 ##### GNU/Linux
@@ -65,26 +65,44 @@ to install the required dependencies:
 sudo apt-get install gpgv2
 ```
 
-##### OSX
-On OSX, you can choose to install the
-[GPG Suite](https://gpgtools.org/gpgsuite.html) or use the Homebrew
-package for GnuPG v2:
+##### OS X / macOS
+On OS X / macOS, you can choose to install the
+[GPG Suite](https://gpgtools.org/gpgsuite.html - GnuPG v2 only at the present
+time) or use the Homebrew or MacPorts package for GnuPG v2 or v2.1:
+
+###### Homebrew
 ```bash
 brew install gnupg2
+```
+or
+```bash
+brew install gnupg21
 ```
 Additionally, you will also need to install `gnu-getopt`, 
 a command-line option parsing library.
 ```bash
 brew install gnu-getopt
 ```
-Since OSX already ships with `getopt(1)`, you will need to 
+Since OS X / macOS already ships with `getopt(1)`, you will need to 
 force-link this keg-only formula:
 ```bash
 brew link --force gnu-getopt
 ```
-You should unlink this formula after using the script to avoid trouble with OSX. 
+You should unlink this formula after using the script to avoid trouble with OS X / macOS. 
 ```bash
 brew unlink gnu-getopt
+```
+###### MacPorts
+```bash
+port install gnupg2
+```
+or
+```bash
+port install gnupg21
+```
+As for Homebrew, install the GNU getopt command-line parser:
+```bash
+port install getopt
 ```
 
 #### Enhancements
@@ -99,10 +117,16 @@ will enhance the output, if installed.
 sudo apt-get install qrencode paperkey
 ```
 
-##### OSX
+##### OS X / macOS
 
+###### Homebrew
 ```bash
 brew install qrencode paperkey
+```
+
+###### MacPorts
+```bash
+port install qrencode paperkey
 ```
 
 #### Note on Unix
@@ -110,7 +134,7 @@ This software was developed on Debian flavored GNU/Linux and uses
 [the Unix philosophy](https://en.wikipedia.org/wiki/Unix_philosophy)
 by combining the standard tools like
 `getopt`, `which`, `mktemp`, `grep`, `awk`, `mkdir`, `head`, and `shred`.
-Mileage may vary for users of Unix derived systems (like \*BSD and OSX).
+Mileage may vary for users of Unix derived systems (like \*BSD and OS X).
 Unix users may need to install
 [getopt(1)](http://linux.die.net/man/1/getopt)
 in order to use this software.
@@ -286,7 +310,7 @@ Small snippets and other inspiration were lifted from the
 [monkeysphere](http://web.monkeysphere.info/community/) code.
 
 Special thanks to [ruimarinho](https://github.com/ruimarinho) for adding 
-OSX functionality.
+OS X functionality.
 
 
 ## Contribute!
