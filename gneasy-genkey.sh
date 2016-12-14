@@ -163,7 +163,8 @@ function check_utils() {
 }
 
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-## Check for GnuPG-v2
+## Check for GnuPG-v2 and distinguish between 'stable' (2.0.x) and 'modern'
+## (2.1.x)
 function check_gpg() {
     if ! type gpg2 &>/dev/null ; then
 	fatal "Failed to find GnuPG-v2: 'gpg2'"
@@ -173,6 +174,12 @@ function check_gpg() {
     ## gpg version
     EGK_GPGINFO=$(gpg2 --version)
     EGK_GPGVERSION=$(echo -n "$EGK_GPGINFO" | head -n1 | awk '{ print $3 }')
+    EGK_GPGVERSIONMINOR=$(echo -n "$EGK_GPGVERSION" | awk -F "." '{ print $2 }')
+    if [ "$EGK_GPGVERSIONMINOR" -ge "1" ] ; then
+        EGK_GPGMODERN=true
+    else
+        EGK_GPGMODERN=false
+    fi
 }
 
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -194,6 +201,9 @@ function shred_file() {
 	if type shred &>/dev/null ; then
 	    ## Prefer GNU shred
     	    secDelCmd="shred"
+	elif type gshred &>/dev/null ; then
+	    ## GNU shred is installed as 'gshred'
+    	    secDelCmd="gshred"
 	elif type srm &>/dev/null ; then
 	    ## *BSD secure-remove should also work
     	    secDelCmd="srm"
@@ -203,8 +213,8 @@ function shred_file() {
     fi
 
     ## Secure delete command is not empty
-    if   [[ "$secDelCmd" == "shred" ]] ; then
-	shred --iterations=7 --force --zero --remove "$@"
+    if   [[ "$secDelCmd" == "shred" ]] || [[ "$secDelCmd" == "gshred" ]] ; then
+	$secDelCmd --iterations=7 --force --zero --remove "$@"
     elif [[ "$secDelCmd" == "srm" ]] ; then
 	srm --medium --force --zero "$@"
     else
@@ -385,7 +395,7 @@ function egk_gpg_gen_master(){
                   --s2k-mode 3 \
                   --s2k-count 65011712 \
 	          --passphrase-repeat $EGK_GPGPASSRPT \
-	          --gen-key )
+	          $EGK_GPGGENKEY )
     local statusF=$(egk_gpg_state_machine \
                     "certification" \
                     "8\nS\nE\nQ\n$size\n$life\nY\n$name\n$mail\n\nO\n"\
@@ -612,14 +622,26 @@ function egk_gpg_export_revoke() {
     local keyId="${1:-$EGK_MASTERKEYID}"
     local revFile=$(mkout_file "private/revocation-cert.asc")
 
-    ## Generate the key
-    log "Use a strong and memorable pass-phrase to protect your"\
-        "revocation certificate."
-    local flags=( --armor --output $revFile --gen-revoke $keyId )
-    local statusF=$(egk_gpg_state_machine \
-                    "revoke" \
-                    "Y\n0\n\nY\n" \
-                     ${flags[@]})
+    if [ "$EGK_GPGMODERN" == true ] ; then
+        ## Revocation certificate should have been generated along with the master key
+        local autoRevFile="$EGK_GPGHOME/openpgp-revocs.d/${fprs[$masterIdx]// /}.rev"
+
+        if [[ -e "$autoRevFile" ]] ; then
+            log "Found revocation certificate automatically generated along with master key: $autoRevFile"
+            mv $autoRevFile $revFile
+        else
+            error "Revocation certificate was not automatically generated along with master key: $autoRevFile"
+        fi
+    else
+        ## Generate the revocation certificate
+        log "Use a strong and memorable pass-phrase to protect your"\
+            "revocation certificate."
+        local flags=( --armor --output $revFile --gen-revoke $keyId )
+        local statusF=$(egk_gpg_state_machine \
+                        "revoke" \
+                        "Y\n0\n\nY\n" \
+                         ${flags[@]})
+    fi
 
     ## Check for success
     if [[ -e "$revFile" ]] ; then
@@ -667,15 +689,28 @@ function egk_gpg_remove_master() {
 	error "Exported sub-key file not found: $sskf "
         error "Master key not removed from key-ring: $keyId"
     else
-	## Remove secret keys from key-ring
-	local flags=( --delete-secret-keys $keyId )
- 	local statusF=$(egk_gpg_state_machine \
-	                "delete-secret" "Y\nY\n" ${flags[@]})
-	## Import secret-sub keys from file into key-ring
-	egk_gpg --import "$sskf"
-	## Give some info
-	log "Removed master key:  $keyId"
-	if [ "$EGK_DEBUG" == true ] ; then egk_gpg_listsecretkey; fi
+	## Remove master secret key from key-ring
+        if [ "$EGK_GPGMODERN" == true ] ; then
+            ## Removal is simply a case of deleting the appropriate file from gpg-agent's keystore
+            skf="$EGK_GPGHOME/private-keys-v1.d/${grps[$masterIdx]}.key"
+
+            if [[ -e "$skf" ]] ; then
+                debug "Shredding master secret key file: $skf"
+                shred_file "$skf"
+            else
+                error "Failed to find master secret key file: $skf"
+            fi
+        else
+            local flags=( --delete-secret-keys $keyId )
+            local statusF=$(egk_gpg_state_machine \
+                            "delete-secret" "Y\nY\n" ${flags[@]})
+            ## Import secret-sub keys from file into key-ring
+            egk_gpg --import "$sskf"
+        fi
+
+        ## Give some info
+        log "Removed master key:  $keyId"
+        if [ "$EGK_DEBUG" == true ] ; then egk_gpg_listsecretkey; fi
     fi
 }
 
@@ -743,6 +778,7 @@ function parse_key_info() {
     expdates=()  # expiration dates
     capes=()     # capabilities
     fprs=()      # fingerprints
+    grps=()      # keygrips
     uids=()      # user-ids
     uidnames=()  # user-id: names
     uidemails=() # user-id: emails
@@ -777,6 +813,11 @@ function parse_key_info() {
 	## Fingerprints
 	if [ "$type" == "fpr" ] ; then
 	    fprs=(${fprs[@]} "$(frmt_fpr_gpg $(echo "$line" | cut -d: -f10))")
+	fi
+
+	## Keygrips
+	if [ "$type" == "grp" ] ; then
+	    grps=(${grps[@]} $(echo "$line" | cut -d: -f10))
 	fi
 
 	## User-ids
@@ -818,6 +859,9 @@ function write_key_info_yaml() {
     echo "  master: "                                >> $infoF
     echo "    id: "${keyids[$masterIdx]}             >> $infoF
     echo "    fingerprint: "${fprs[$masterIdx]}      >> $infoF
+    if [ ${grps[$masterIdx]+_} ] ; then
+    echo "    keygrip: "${grps[$masterIdx]}          >> $infoF
+    fi
     echo "    capability: "${capes[$masterIdx]}      >> $infoF
     echo "    algorithm: "${algos[$masterIdx]}       >> $infoF
     echo "    size: "${lengths[$masterIdx]}          >> $infoF
@@ -831,6 +875,9 @@ function write_key_info_yaml() {
     if [ $idx != $masterIdx ] ; then
     echo "    - id: "${keyids[$idx]}                 >> $infoF
     echo "      fingerprint: "${fprs[$idx]}          >> $infoF
+    if [ ${grps[$idx]+_} ] ; then
+    echo "      keygrip: "${grps[$idx]}              >> $infoF
+    fi
     echo "      capability: "${capes[$idx]}          >> $infoF
     echo "      algorithm: "${algos[$idx]}           >> $infoF
     echo "      size: "${lengths[$idx]}              >> $infoF
@@ -1038,6 +1085,11 @@ function parse_options() {
     EGK_GPGCIPHERPREFS="AES256 AES192 AES CAST5"
     EGK_GPGDIGESTPREFS="SHA512 SHA384 SHA256 SHA224"
     EGK_GPGDEFAULTPREFS="SHA512 SHA384 SHA256 SHA224 AES256 AES192 AES CAST5 ZLIB BZIP2 ZIP Uncompressed"
+    if [ "$EGK_GPGMODERN" == true ] ; then
+        EGK_GPGGENKEY="--full-gen-key"
+    else
+        EGK_GPGGENKEY="--gen-key"
+    fi
 
     EGK_TMPPATH="/tmp"
     EGK_TMPDIR=""
