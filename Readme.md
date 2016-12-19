@@ -309,8 +309,9 @@ the initial example of which was found at the
 Small snippets and other inspiration were lifted from the
 [monkeysphere](http://web.monkeysphere.info/community/) code.
 
-Special thanks to [ruimarinho](https://github.com/ruimarinho) for adding 
-OS X functionality.
+Special thanks to:
+ - [ruimarinho](https://github.com/ruimarinho) for adding OS X functionality; 
+ - [codebrewer](https://github.com/codebrewer) for a number of nifty add-ons
 
 
 ## Contribute!
