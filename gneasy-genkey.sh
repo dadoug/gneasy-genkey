@@ -1105,7 +1105,7 @@ function parse_options() {
 "size:,lifetime:,sub-size:,sub-lifetime:,"\
 "gnupg-home:,"\
 "no-sign,no-encr,no-auth,otr,policy-url:,"\
-"out-dir:,no-export,no-export-pub,no-export-sec"\
+"out-dir:,no-export,no-export-pub,no-export-sec,no-export-sub,"\
 "no-paperkey,no-revoke,no-info,no-calendar,no-qr,no-vcard,keep-master"
 
     cliOpts=$(getopt --name        "$EGK_PROG" \
