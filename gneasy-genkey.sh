@@ -73,6 +73,7 @@ Options:
      --no-qr          Do not export QR-codes.
      --no-vcard       Do not export vcard with contact information.
      --keep-master    Keep the master key in the GnuPG keyring.
+     --photo          Name of a JPEG image file to be added as a uid
 
      --gnupg-home     Home directory for GnuPG. Default is '~/.gnupg'.
 
@@ -462,6 +463,46 @@ function egk_gpg_add_uids(){
     for idx in $(seq 0 $((${#EGK_NAMES[@]} - 1)))
     do
 	egk_gpg_add_uid "$keyId" "${EGK_NAMES[${idx}]}" "${EGK_MAILS[${idx}]}"
+    done
+    unset idx
+}
+
+## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+## Add a photo
+##  $1: master keyId
+##  $2: JPEG image filename
+function egk_gpg_add_photo(){
+    local flags=( --edit-key "$1" )
+    local sm="addphoto\n$2\ny\nsave\n"
+
+    if [ -f "$2" -a -r "$2" ] ; then
+        ## Photos larger than 6144 bytes prompt GnuPG to ask for confirmation that
+        ## the photo should be used, so an additional "y\n" is needed. Using `wc`
+        ## like this seems to be widely portable
+        if [ $(wc -c <"$2") -gt 6144 ] ; then
+            log "Photo $2 is more than 6144 bytes in size but adding anyway"
+            sm="addphoto\n$2\ny\ny\nsave\n"
+        fi
+
+        local statusF=$(egk_gpg_state_machine \
+                        "addphoto" \
+                        $sm \
+                        ${flags[@]})
+
+        log "Added photo: $2"
+    else
+        error "Photo file $2 does not exist or is not readable"
+    fi
+}
+
+## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+## Add all photos
+##  $1: master keyId
+function egk_gpg_add_photos(){
+    local keyId="${1:-$EGK_MASTERKEYID}"
+    for idx in $(seq 0 $((${#EGK_PHOTOS[@]} - 1)))
+    do
+        egk_gpg_add_photo "$keyId" "${EGK_PHOTOS[${idx}]}"
     done
     unset idx
 }
@@ -1055,6 +1096,7 @@ function parse_options() {
     EGK_MAIL=""
     EGK_NAMES=()
     EGK_MAILS=()
+    EGK_PHOTOS=()
     EGK_KEYSIZE=4096
     EGK_KEYLIFE="2y"
     EGK_SUBKEYSIZE=4096
@@ -1106,7 +1148,7 @@ function parse_options() {
 "gnupg-home:,"\
 "no-sign,no-encr,no-auth,otr,policy-url:,"\
 "out-dir:,no-export,no-export-pub,no-export-sec,no-export-sub,"\
-"no-paperkey,no-revoke,no-info,no-calendar,no-qr,no-vcard,keep-master"
+"no-paperkey,no-revoke,no-info,no-calendar,no-qr,no-vcard,keep-master,photo:"
 
     cliOpts=$(getopt --name        "$EGK_PROG" \
                      --options     "$cliSOpts" \
@@ -1137,27 +1179,28 @@ function parse_options() {
 		shift ;;
 
 	    ## EGK Options
-	    -S | --size          ) EGK_KEYSIZE="$2";     shift 2 ;;
-	    -L | --lifetime      ) EGK_KEYLIFE="$2";     shift 2 ;;
-	    -s | --sub-size      ) EGK_SUBKEYSIZE="$2";  shift 2 ;;
-	    -l | --sub-lifetime  ) EGK_SUBKEYLIFE="$2";  shift 2 ;;
-                 --no-sign       ) EGK_GENSIGN=false;    shift ;;
-                 --no-encr       ) EGK_GENENCR=false;    shift ;;
-                 --no-auth       ) EGK_GENAUTH=false;    shift ;;
-                 --otr           ) EGK_GENOTR=true;      shift ;;
-                 --policy-url    ) EGK_POLURL="$2";      shift 2 ;;
-	         --out-dir       ) EGK_OUTDIR="$2";      shift 2 ;;
-                 --no-export     ) EGK_EXPORT=false;     shift ;;
-                 --no-export-pub ) EGK_EXPORTPUB=false;  shift ;;
-                 --no-export-sec ) EGK_EXPORTSEC=false;  shift ;;
-                 --no-export-sub ) EGK_EXPORTSUB=false;  shift ;;
-                 --no-revoke     ) EGK_EXPORTREV=false;  shift ;;
-                 --no-paperkey   ) EGK_EXPORTPK=false;   shift ;;
-                 --no-info       ) EGK_EXPORTSUM=false;  shift ;;
-                 --no-calendar   ) EGK_EXPORTCAL=false;  shift ;;
-                 --no-qr         ) EGK_EXPORTQR=false;   shift ;;
-                 --no-vcard      ) EGK_EXPORTVC=false;   shift ;;
-                 --keep-master   ) EGK_KEEPMASTER=true;  shift ;;
+	    -S | --size          ) EGK_KEYSIZE="$2";                      shift 2 ;;
+	    -L | --lifetime      ) EGK_KEYLIFE="$2";                      shift 2 ;;
+	    -s | --sub-size      ) EGK_SUBKEYSIZE="$2";                   shift 2 ;;
+	    -l | --sub-lifetime  ) EGK_SUBKEYLIFE="$2";                   shift 2 ;;
+                 --no-sign       ) EGK_GENSIGN=false;                     shift ;;
+                 --no-encr       ) EGK_GENENCR=false;                     shift ;;
+                 --no-auth       ) EGK_GENAUTH=false;                     shift ;;
+                 --otr           ) EGK_GENOTR=true;                       shift ;;
+                 --policy-url    ) EGK_POLURL="$2";                       shift 2 ;;
+	         --out-dir       ) EGK_OUTDIR="$2";                       shift 2 ;;
+                 --no-export     ) EGK_EXPORT=false;                      shift ;;
+                 --no-export-pub ) EGK_EXPORTPUB=false;                   shift ;;
+                 --no-export-sec ) EGK_EXPORTSEC=false;                   shift ;;
+                 --no-export-sub ) EGK_EXPORTSUB=false;                   shift ;;
+                 --no-revoke     ) EGK_EXPORTREV=false;                   shift ;;
+                 --no-paperkey   ) EGK_EXPORTPK=false;                    shift ;;
+                 --no-info       ) EGK_EXPORTSUM=false;                   shift ;;
+                 --no-calendar   ) EGK_EXPORTCAL=false;                   shift ;;
+                 --no-qr         ) EGK_EXPORTQR=false;                    shift ;;
+                 --no-vcard      ) EGK_EXPORTVC=false;                    shift ;;
+                 --keep-master   ) EGK_KEEPMASTER=true;                   shift ;;
+                 --photo         ) EGK_PHOTOS=("${EGK_PHOTOS[@]}" "$2");  shift 2 ;;
 
 	    ## GnuPG options
 	         --gnupg-home   ) EGK_GPGHOME="$2"; shift 2 ;;
@@ -1277,6 +1320,7 @@ function parse_options() {
     debug "  UID:     $EGK_NAME <$EGK_MAIL>"
     debug "  Names:   ${EGK_NAMES[@]}"
     debug "  Mails:   ${EGK_MAILS[@]}"
+    debug "  Photos:  ${EGK_PHOTOS[@]}"
     debug "  Master:  $EGK_KEYSIZE-bits $EGK_KEYLIFE"
     debug "  Sub-Key: $EGK_SUBKEYSIZE-bits $EGK_SUBKEYLIFE"
     debug "GnuPG:"
@@ -1309,6 +1353,8 @@ function gneasy_genkey(){
     if [ "$EGK_GENOTR"  == true ] ; then egk_gpg_gen_subkey "otr" "1024" ; fi
     ## Add other UIDs
     if [[ ${#EGK_NAMES[@]} -gt 0 ]] ; then egk_gpg_add_uids ; fi
+    ## Add photos
+    if [[ ${#EGK_PHOTOS[@]} -gt 0 ]] ; then egk_gpg_add_photos ; fi
     ## Debug
     if [ "$EGK_DEBUG" == true ]; then debug "Key: " ; egk_gpg_listsecretkey ; fi
 

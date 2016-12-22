@@ -172,6 +172,21 @@ Note that extra UIDs can be added with comma separation:
 ```bash
 gneasy-genkey "Testy McTesterson <testy@mctesterson.test>,Test Testerson <test@testerson.tst>,<@testy>"
 ```
+Photos (which should be JPEG images named with a `.jpg` or `.jpeg` filename
+extension) can be added using the `--photo` option followed by the image filename,
+with relative paths being resolved against the current working directory:
+```bash
+gneasy-genkey --photo testy.jpg "Testy McTesterson <testy@mctesterson.test>"
+```
+
+Any number of photos can be added by specifying `--photo` and a filename multiple times.
+GnuPG suggests keeping image sizes to around 240x288 pixels and issues a warning and asks
+for confirmation for files greater than 6KB in size. Note that this script will silently
+acknowledge these confirmation requests.
+
+Consider adding the `show-photos` option to the `list-options` and/or `verify-options`
+lines in the `gpg.conf` configuration file to have GnuPG automatically display available
+photos when listing and verifying keys respectively.
 
 ### Help
 ```
@@ -212,6 +227,7 @@ Options:
      --no-qr          Do not export QR-code with uid and fingerprint.
      --no-vcard       Do not export vcard with contact information.
      --keep-master    Keep the master key in the GnuPG keyring.
+     --photo          Name of a JPEG image file to be added as a uid
 
      --gnupg-home     Home directory for GnuPG. Default is '~/.gnupg'.
 
@@ -308,6 +324,10 @@ the initial example of which was found at the
 
 Small snippets and other inspiration were lifted from the
 [monkeysphere](http://web.monkeysphere.info/community/) code.
+
+Testy McTesterson photo (file `test/testy.jpg`) renamed from [POV-cat](https://commons.wikimedia.org/wiki/File:POV-cat.jpg)
+by [Pauledork](https://commons.wikimedia.org/wiki/User:Pauledork) (240x240px version) licensed under
+[CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/deed.en)
 
 Special thanks to:
  - [ruimarinho](https://github.com/ruimarinho) for adding OS X functionality; 
