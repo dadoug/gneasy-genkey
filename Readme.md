@@ -197,47 +197,49 @@ Arguments:
  <uid>  User-id(s) for the generated key. Format is "Name <email>".
 
 Options:
- -S, --size           Size (length) in bits of master key.
-                        Range is [1024, 4096]. Default is 4096.
- -L, --lifetime       Lifetime (expiration time) of master key.
-                        Format is that of GnuPG: 0 = no expiration,
-                        <n> = n days, <n>w = n weeks, <n>m = n months,
-                        <n>y = n years. Default is 2y.
- -s, --sub-size       Size of sub-keys in bits.
-                        Range and default same as --size.
- -l, --sub-lifetime   Lifetime of sub-keys.
-                        Format is same as --lifetime. Default is 1y.
+ -S, --size                          Size (length) in bits of master key.
+                                       Range is [1024, 4096]. Default is 4096.
+ -L, --lifetime                      Lifetime (expiration time) of master key.
+                                       Format is that of GnuPG: 0 = no expiration,
+                                       <n> = n days, <n>w = n weeks, <n>m = n months,
+                                       <n>y = n years. Default is 2y.
+ -s, --sub-size                      Size of sub-keys in bits.
+                                       Range and default same as --size.
+ -l, --sub-lifetime                  Lifetime of sub-keys.
+                                       Format is same as --lifetime. Default is 1y.
+                                     
+     --no-sign                       Do not generate a sub-key for signing.
+     --no-encr                       Do not generate a sub-key for encryption.
+     --no-auth                       Do not generate a sub-key for authentication.
+     --otr                           Generate a 1024-bit DSA sub-key for authentication.
+     --policy-url                    Set the policy URL (rfc4880:5.2.3.20).
 
-     --no-sign        Do not generate a sub-key for signing.
-     --no-encr        Do not generate a sub-key for encryption.
-     --no-auth        Do not generate a sub-key for authentication.
-     --otr            Generate a 1024-bit DSA sub-key for authentication.
-     --policy-url     Set the policy URL (rfc4880:5.2.3.20).
+     --out-dir                       Directory for export output; created if not present.
+                                       Default is key-id of the master key.
+     --no-export                     Do not export keys, revocation or summary.
+     --no-revoke                     Do not export revocation certificate.
+     --no-export-pub                 Do not export public key.
+     --no-export-sec                 Do not export secret keys.
+     --no-export-sub                 Do not export secret sub-keys.
+     --no-paperkey                   Do not export secret keys as paperkey.
+     --no-info                       Do not export key summary information.
+     --no-calendar                   Do not export iCalendar for key expiration dates.
+     --no-qr                         Do not export QR-code with uid and fingerprint.
+     --no-vcard                      Do not export vcard with contact information.
+     --keep-master                   Keep the master key in the GnuPG keyring.
+     --different-sub-key-passphrase  Change the passphrase on the sub-keys (if the master
+                                       key is removed from the GnuPG keyring).
+     --photo                         Name of a JPEG image file to be added as a uid
 
-     --out-dir        Directory for export output; created if not present.
-                        Default is key-id of the master key.
-     --no-export      Do not export keys, revocation or summary.
-     --no-revoke      Do not export revocation certificate.
-     --no-export-pub  Do not export public key.
-     --no-export-sec  Do not export secret keys.
-     --no-export-sub  Do not export secret sub-keys.
-     --no-paperkey    Do not export secret keys as paperkey.
-     --no-info        Do not export key summary information.
-     --no-calendar    Do not export iCalendar for key expiration dates.
-     --no-qr          Do not export QR-code with uid and fingerprint.
-     --no-vcard       Do not export vcard with contact information.
-     --keep-master    Keep the master key in the GnuPG keyring.
-     --photo          Name of a JPEG image file to be added as a uid
+     --gnupg-home                    Home directory for GnuPG. Default is '~/.gnupg'.
 
-     --gnupg-home     Home directory for GnuPG. Default is '~/.gnupg'.
+     --quiet                         Disable regular terminal output but show errors.
+     --silent                        Disable all terminal output.
 
-     --quiet          Disable regular terminal output but show errors.
-     --silent         Disable all terminal output.
-
- -h, --help           Print this help and exit.
- -v, --version        Print version information and exit.
-     --version-num    Print version number <major.minor.patch> and exit.
-     --copyright      Print copyright & license information and exit.
+ -h, --help                          Print this help and exit.
+ -v, --version                       Print version information and exit.
+     --version-num                   Print version number <major.minor.patch> and exit.
+     --copyright                     Print copyright & license information and exit.
 ```
 #### Debug
 Developers might find the following flags useful:
