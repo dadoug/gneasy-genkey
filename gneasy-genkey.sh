@@ -43,47 +43,49 @@ Arguments:
  <uid>  User-id(s) for the generated key. Format is "Name <email>".
 
 Options:
- -S, --size           Size (length) in bits of master key.
-                        Range is [1024, 4096]. Default is 4096.
- -L, --lifetime       Lifetime (expiration time) of master key.
-                        Format is that of GnuPG: 0 = no expiration,
-                        <n> = n days, <n>w = n weeks, <n>m = n months,
-                        <n>y = n years. Default is 2y.
- -s, --sub-size       Size of sub-keys in bits.
-                        Range and default same as --size.
- -l, --sub-lifetime   Lifetime of sub-keys.
-                        Format is same as --lifetime. Default is 1y.
+ -S, --size                          Size (length) in bits of master key.
+                                       Range is [1024, 4096]. Default is 4096.
+ -L, --lifetime                      Lifetime (expiration time) of master key.
+                                       Format is that of GnuPG: 0 = no expiration,
+                                       <n> = n days, <n>w = n weeks, <n>m = n months,
+                                       <n>y = n years. Default is 2y.
+ -s, --sub-size                      Size of sub-keys in bits.
+                                       Range and default same as --size.
+ -l, --sub-lifetime                  Lifetime of sub-keys.
+                                       Format is same as --lifetime. Default is 1y.
 
-     --no-sign        Do not generate a sub-key for signing.
-     --no-encr        Do not generate a sub-key for encryption.
-     --no-auth        Do not generate a sub-key for authentication.
-     --otr            Generate a 1024-bit DSA sub-key for authentication.
-     --policy-url     Set the policy URL (rfc4880:5.2.3.20).
+     --no-sign                       Do not generate a sub-key for signing.
+     --no-encr                       Do not generate a sub-key for encryption.
+     --no-auth                       Do not generate a sub-key for authentication.
+     --otr                           Generate a 1024-bit DSA sub-key for authentication.
+     --policy-url                    Set the policy URL (rfc4880:5.2.3.20).
 
-     --out-dir        Directory for export output; created if not present.
-                        Default is key-id of the master key.
-     --no-export      Do not export keys, revocation or summary.
-     --no-revoke      Do not export revocation certificate.
-     --no-export-pub  Do not export public key.
-     --no-export-sec  Do not export secret keys.
-     --no-export-sub  Do not export secret sub-keys.
-     --no-paperkey    Do not export secret keys as paperkey.
-     --no-info        Do not export key summary information.
-     --no-calendar    Do not export iCalendar for key expiration dates.
-     --no-qr          Do not export QR-codes.
-     --no-vcard       Do not export vcard with contact information.
-     --keep-master    Keep the master key in the GnuPG keyring.
-     --photo          Name of a JPEG image file to be added as a uid
+     --out-dir                       Directory for export output; created if not present.
+                                       Default is key-id of the master key.
+     --no-export                     Do not export keys, revocation or summary.
+     --no-revoke                     Do not export revocation certificate.
+     --no-export-pub                 Do not export public key.
+     --no-export-sec                 Do not export secret keys.
+     --no-export-sub                 Do not export secret sub-keys.
+     --no-paperkey                   Do not export secret keys as paperkey.
+     --no-info                       Do not export key summary information.
+     --no-calendar                   Do not export iCalendar for key expiration dates.
+     --no-qr                         Do not export QR-codes.
+     --no-vcard                      Do not export vcard with contact information.
+     --keep-master                   Keep the master key in the GnuPG keyring.
+     --different-sub-key-passphrase  Change the passphrase on the sub-keys (if the master
+                                       key is removed from the GnuPG keyring).
+     --photo                         Name of a JPEG image file to be added as a uid.
 
-     --gnupg-home     Home directory for GnuPG. Default is '~/.gnupg'.
+     --gnupg-home                    Home directory for GnuPG. Default is '~/.gnupg'.
 
-     --quiet          Disable regular terminal output but show errors.
-     --silent         Disable all terminal output.
+     --quiet                         Disable regular terminal output but show errors.
+     --silent                        Disable all terminal output.
 
- -h, --help           Print this help and exit.
- -v, --version        Print version information and exit.
-     --version-num    Print version number <major.minor.patch> and exit.
-     --copyright      Print copyright & license information and exit.
+ -h, --help                          Print this help and exit.
+ -v, --version                       Print version information and exit.
+     --version-num                   Print version number <major.minor.patch> and exit.
+     --copyright                     Print copyright & license information and exit.
 
 Examples:
  $ $EGK_PROG "Testy McTesterson <testy@mctesterson.test>"
@@ -756,6 +758,27 @@ function egk_gpg_remove_master() {
 }
 
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+## Change passphrase protecting sub-keys
+##  $1: key-id
+function egk_gpg_change_passphrase() {
+    local keyId="${1:-$EGK_MASTERKEYID}"
+    local flags=( --edit-key "$keyId" )
+    local sm="passwd\nsave\n"
+
+    if [ "$EGK_GPGMODERN" == true ] ; then
+        sm="passwd\nq"
+    fi
+
+    log "Use a strong and memorable pass-phrase to protect your sub-keys."
+    local statusF=$(egk_gpg_state_machine \
+                    "changepassphrase" \
+                    $sm \
+                    ${flags[@]})
+
+    log "Changed passphrase protecting sub-keys"
+}
+
+## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Convert from seconds since epoch to a nearly ISO-8601 date stamp
 ##  $1: seconds since epoch
 function sec2date() {
@@ -1119,6 +1142,7 @@ function parse_options() {
     EGK_EXPORTPK=true
     EGK_EXPORTVC=true
     EGK_KEEPMASTER=false
+    EGK_DIFFERENTSUBKEYPASSPHRASE=false
 
     EGK_GPGHOME="${HOME}/.gnupg"
     EGK_GPGPASSRPT=2
@@ -1148,7 +1172,8 @@ function parse_options() {
 "gnupg-home:,"\
 "no-sign,no-encr,no-auth,otr,policy-url:,"\
 "out-dir:,no-export,no-export-pub,no-export-sec,no-export-sub,"\
-"no-paperkey,no-revoke,no-info,no-calendar,no-qr,no-vcard,keep-master,photo:"
+"no-paperkey,no-revoke,no-info,no-calendar,no-qr,no-vcard,keep-master,"\
+"different-sub-key-passphrase,photo:"
 
     cliOpts=$(getopt --name        "$EGK_PROG" \
                      --options     "$cliSOpts" \
@@ -1179,28 +1204,29 @@ function parse_options() {
 		shift ;;
 
 	    ## EGK Options
-	    -S | --size          ) EGK_KEYSIZE="$2";                      shift 2 ;;
-	    -L | --lifetime      ) EGK_KEYLIFE="$2";                      shift 2 ;;
-	    -s | --sub-size      ) EGK_SUBKEYSIZE="$2";                   shift 2 ;;
-	    -l | --sub-lifetime  ) EGK_SUBKEYLIFE="$2";                   shift 2 ;;
-                 --no-sign       ) EGK_GENSIGN=false;                     shift ;;
-                 --no-encr       ) EGK_GENENCR=false;                     shift ;;
-                 --no-auth       ) EGK_GENAUTH=false;                     shift ;;
-                 --otr           ) EGK_GENOTR=true;                       shift ;;
-                 --policy-url    ) EGK_POLURL="$2";                       shift 2 ;;
-	         --out-dir       ) EGK_OUTDIR="$2";                       shift 2 ;;
-                 --no-export     ) EGK_EXPORT=false;                      shift ;;
-                 --no-export-pub ) EGK_EXPORTPUB=false;                   shift ;;
-                 --no-export-sec ) EGK_EXPORTSEC=false;                   shift ;;
-                 --no-export-sub ) EGK_EXPORTSUB=false;                   shift ;;
-                 --no-revoke     ) EGK_EXPORTREV=false;                   shift ;;
-                 --no-paperkey   ) EGK_EXPORTPK=false;                    shift ;;
-                 --no-info       ) EGK_EXPORTSUM=false;                   shift ;;
-                 --no-calendar   ) EGK_EXPORTCAL=false;                   shift ;;
-                 --no-qr         ) EGK_EXPORTQR=false;                    shift ;;
-                 --no-vcard      ) EGK_EXPORTVC=false;                    shift ;;
-                 --keep-master   ) EGK_KEEPMASTER=true;                   shift ;;
-                 --photo         ) EGK_PHOTOS=("${EGK_PHOTOS[@]}" "$2");  shift 2 ;;
+	    -S | --size                         ) EGK_KEYSIZE="$2";                      shift 2 ;;
+	    -L | --lifetime                     ) EGK_KEYLIFE="$2";                      shift 2 ;;
+	    -s | --sub-size                     ) EGK_SUBKEYSIZE="$2";                   shift 2 ;;
+	    -l | --sub-lifetime                 ) EGK_SUBKEYLIFE="$2";                   shift 2 ;;
+                 --no-sign                      ) EGK_GENSIGN=false;                     shift ;;
+                 --no-encr                      ) EGK_GENENCR=false;                     shift ;;
+                 --no-auth                      ) EGK_GENAUTH=false;                     shift ;;
+                 --otr                          ) EGK_GENOTR=true;                       shift ;;
+                 --policy-url                   ) EGK_POLURL="$2";                       shift 2 ;;
+                 --out-dir                      ) EGK_OUTDIR="$2";                       shift 2 ;;
+                 --no-export                    ) EGK_EXPORT=false;                      shift ;;
+                 --no-export-pub                ) EGK_EXPORTPUB=false;                   shift ;;
+                 --no-export-sec                ) EGK_EXPORTSEC=false;                   shift ;;
+                 --no-export-sub                ) EGK_EXPORTSUB=false;                   shift ;;
+                 --no-revoke                    ) EGK_EXPORTREV=false;                   shift ;;
+                 --no-paperkey                  ) EGK_EXPORTPK=false;                    shift ;;
+                 --no-info                      ) EGK_EXPORTSUM=false;                   shift ;;
+                 --no-calendar                  ) EGK_EXPORTCAL=false;                   shift ;;
+                 --no-qr                        ) EGK_EXPORTQR=false;                    shift ;;
+                 --no-vcard                     ) EGK_EXPORTVC=false;                    shift ;;
+                 --keep-master                  ) EGK_KEEPMASTER=true;                   shift ;;
+                 --different-sub-key-passphrase ) EGK_DIFFERENTSUBKEYPASSPHRASE=true;    shift ;;
+                 --photo                        ) EGK_PHOTOS=("${EGK_PHOTOS[@]}" "$2");  shift 2 ;;
 
 	    ## GnuPG options
 	         --gnupg-home   ) EGK_GPGHOME="$2"; shift 2 ;;
@@ -1315,6 +1341,11 @@ function parse_options() {
 	fi
     fi
 
+    ## Check for mutually exclusive options
+    if [ "$EGK_KEEPMASTER" == true -a "$EGK_DIFFERENTSUBKEYPASSPHRASE" == true ] ; then
+        opt_error "--keep-master and --different-sub-key-passphrase cannot be used together"
+    fi
+
     ## Dump some options
     debug "EGK:"
     debug "  UID:     $EGK_NAME <$EGK_MAIL>"
@@ -1392,6 +1423,9 @@ function gneasy_genkey(){
 
     	## Remove master key from key-ring
     	if [ "$EGK_KEEPMASTER" == false ] ; then egk_gpg_remove_master ; fi
+
+    	## Change passphrase protecting sub-keys
+    	if [ "$EGK_DIFFERENTSUBKEYPASSPHRASE" == true ] ; then egk_gpg_change_passphrase ; fi
 
 	## Debug
 	if [ "$EGK_DEBUG" == true ] ; then
