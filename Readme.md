@@ -67,8 +67,8 @@ sudo apt-get install gpgv2
 
 ##### OS X / macOS
 On OS X / macOS, you can choose to install the
-[GPG Suite](https://gpgtools.org/gpgsuite.html - GnuPG v2 only at the present
-time) or use the Homebrew or MacPorts package for GnuPG v2 or v2.1:
+[GPG Suite](https://gpgtools.org/gpgsuite.html) - GnuPG v2 only at the present
+time - or use the Homebrew or MacPorts package for GnuPG v2 or v2.1:
 
 ###### Homebrew
 ```bash
